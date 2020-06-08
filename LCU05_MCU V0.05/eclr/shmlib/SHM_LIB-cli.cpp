@@ -1,0 +1,202 @@
+// KW-Software eCLR Native Library Builder version 2.1.2.0
+// SHM_LIB firmware module setup code. created at Wed Mar 26 15:31:15 2014
+
+// do not modify this automatically generated file !
+
+#include "eclr.h"
+#include "controller.h"
+#include "metadata.h"
+
+#include "SHM_LIB.h"
+
+#if ECLRMETA_COMPATID != 10
+  #error incompatible metadata, rebuild SHM_LIB.cs !
+#endif
+
+typedef uint32 t_meta;
+
+extern t_meta SHM_LIB_meta[];
+
+// declare all method member
+#ifndef META_SharedMemory1_GetMemPtr_0
+#define META_SharedMemory1_GetMemPtr_0 ((Void* (*)())&SHM_LIB::SharedMemory1::GetMemPtr)
+#endif
+void (SHM_LIB::SharedMemory1::* const p29)() = &SHM_LIB::SharedMemory1::ctor;
+
+unsigned SHM_LIB::s_modulHndl;
+bool SHM_LIB::loadLibrary()
+{
+    ClrMethod* pMethod = NULL;
+    pMethod = pMethod;
+    // class SHM_LIB.SharedMemory1
+    pMethod = (ClrMethod*)&SHM_LIB_meta[29];
+    pMethod->setEntry(get_class_method((void*)&p29));
+    unsigned size = 53*4;
+    s_modulHndl = ClrController::addNativeLib(SHM_LIB_meta, size, isCompatible, load, unload);
+    return true;
+
+}
+
+#if (PLATFORM_TARGET_ENDIANESS == TARGET_BIG_ENDIAN)
+#define META_0000 0x00000110
+#define META_0001 0x00000A04
+#define META_0002 0x00000611
+#define META_0003 0x00010001
+#define META_0004 0x00000000
+#define META_0005 0x00000002
+#define META_0006 0x0000000C
+#define META_0007 0x53484D5F
+#define META_0008 0x4C494200
+#define META_0009 0x00000212
+#define META_0010 0x53484D5F
+#define META_0011 0x4C494200
+#define META_0012 0x00001413
+#define META_0013 0x00000000
+#define META_0014 0x00000000
+#define META_0015 0x82100720
+#define META_0016 0x00000002
+#define META_0017 0x00000004
+#define META_0018 0x001EFFFB
+#define META_0019 0x000A0013
+#define META_0020 0x53686172
+#define META_0021 0x65644D65
+#define META_0022 0x6D6F7279
+#define META_0023 0x31000000
+#define META_0024 0x00000000
+#define META_0025 0x00130001
+#define META_0026 0x000C4765
+#define META_0027 0x744D656D
+#define META_0028 0x50747200
+#define META_0029 0x00000000
+#define META_0030 0x00050000
+#define META_0031 0x2E63746F
+#define META_0032 0x72000000
+#define META_0033 0x00000713
+#define META_0034 0x00000000
+#define META_0035 0x00000000
+#define META_0036 0x804006F0
+#define META_0037 0x00000000
+#define META_0038 0x00000008
+#define META_0039 0x0000000D
+#define META_0040 0x2A000000
+#define META_0041 0x00000212
+#define META_0042 0x53797374
+#define META_0043 0x656D0000
+#define META_0044 0x0000031A
+#define META_0045 0xFFFFFFFD
+#define META_0046 0x4F626A65
+#define META_0047 0x63740000
+#define META_0048 0x0000031A
+#define META_0049 0xFFFFFFF9
+#define META_0050 0x566F6964
+#define META_0051 0x00000000
+#define META_0052 0x00000001
+
+#undef META_0017
+#define META_0017 TYPEINFO_SET_SIZE32BE(0x00000004, sizeof(SHM_LIB::SharedMemory1)) // sizeof(SHM_LIB::SharedMemory1)
+#undef META_0024
+#define META_0024 (t_meta)META_SharedMemory1_GetMemPtr_0  // SHM_LIB::SharedMemory1::GetMemPtr (static)
+#undef META_0029
+#define META_0029 0x00000000  // SHM_LIB::SharedMemory1::.ctor (non-static)
+
+t_meta SHM_LIB_meta[53] = {
+    META_0000,META_0001,META_0002,META_0003,    // 000000 00 00 01 10 00 00 0A 04 00 00 06 11 00 01 00 01    ................ 
+    META_0004,META_0005,META_0006,META_0007,    // 000016 00 00 00 00 00 00 00 02 00 00 00 0C 53 48 4D 5F    ............SHM_ 
+    META_0008,META_0009,META_0010,META_0011,    // 000032 4C 49 42 00 00 00 02 12 53 48 4D 5F 4C 49 42 00    LIB.....SHM_LIB. 
+    META_0012,META_0013,META_0014,META_0015,    // 000048 00 00 14 13 00 00 00 00 00 00 00 00 82 10 07 20    ...............  
+    META_0016,META_0017,META_0018,META_0019,    // 000064 00 00 00 02 00 00 00 04 00 1E FF FB 00 0A 00 13    ................ 
+    META_0020,META_0021,META_0022,META_0023,    // 000080 53 68 61 72 65 64 4D 65 6D 6F 72 79 31 00 00 00    SharedMemory1... 
+    META_0024,META_0025,META_0026,META_0027,    // 000096 00 00 00 00 00 13 00 01 00 0C 47 65 74 4D 65 6D    ..........GetMem 
+    META_0028,META_0029,META_0030,META_0031,    // 000112 50 74 72 00 00 00 00 00 00 05 00 00 2E 63 74 6F    Ptr..........cto 
+    META_0032,META_0033,META_0034,META_0035,    // 000128 72 00 00 00 00 00 07 13 00 00 00 00 00 00 00 00    r............... 
+    META_0036,META_0037,META_0038,META_0039,    // 000144 80 40 06 F0 00 00 00 00 00 00 00 08 00 00 00 0D    .@.............. 
+    META_0040,META_0041,META_0042,META_0043,    // 000160 2A 00 00 00 00 00 02 12 53 79 73 74 65 6D 00 00    *.......System.. 
+    META_0044,META_0045,META_0046,META_0047,    // 000176 00 00 03 1A FF FF FF FD 4F 62 6A 65 63 74 00 00    ........Object.. 
+    META_0048,META_0049,META_0050,META_0051,    // 000192 00 00 03 1A FF FF FF F9 56 6F 69 64 00 00 00 00    ........Void.... 
+    META_0052    // 000208 00 00 00 01    .... 
+    };
+
+
+#elif (PLATFORM_TARGET_ENDIANESS == TARGET_LITTLE_ENDIAN)
+#define META_0000 0x00000110
+#define META_0001 0x0A040000
+#define META_0002 0x00000611
+#define META_0003 0x00010001
+#define META_0004 0x00000000
+#define META_0005 0x00020000
+#define META_0006 0x000C0000
+#define META_0007 0x5F4D4853
+#define META_0008 0x0042494C
+#define META_0009 0x00000212
+#define META_0010 0x5F4D4853
+#define META_0011 0x0042494C
+#define META_0012 0x00001413
+#define META_0013 0x00000000
+#define META_0014 0x00000000
+#define META_0015 0x07208210
+#define META_0016 0x00020000
+#define META_0017 0x00000004
+#define META_0018 0xFFFB001E
+#define META_0019 0x0013000A
+#define META_0020 0x72616853
+#define META_0021 0x654D6465
+#define META_0022 0x79726F6D
+#define META_0023 0x00000031
+#define META_0024 0x00000000
+#define META_0025 0x00010013
+#define META_0026 0x6547000C
+#define META_0027 0x6D654D74
+#define META_0028 0x00727450
+#define META_0029 0x00000000
+#define META_0030 0x00000005
+#define META_0031 0x6F74632E
+#define META_0032 0x00000072
+#define META_0033 0x00000713
+#define META_0034 0x00000000
+#define META_0035 0x00000000
+#define META_0036 0x06F08040
+#define META_0037 0x00000000
+#define META_0038 0x00000008
+#define META_0039 0x000D0000
+#define META_0040 0x0000002A
+#define META_0041 0x00000212
+#define META_0042 0x74737953
+#define META_0043 0x00006D65
+#define META_0044 0x0000031A
+#define META_0045 0xFFFDFFFF
+#define META_0046 0x656A624F
+#define META_0047 0x00007463
+#define META_0048 0x0000031A
+#define META_0049 0xFFF9FFFF
+#define META_0050 0x64696F56
+#define META_0051 0x00000000
+#define META_0052 0x00000001
+
+#undef META_0017
+#define META_0017 TYPEINFO_SET_SIZE32LE(0x00000004, sizeof(SHM_LIB::SharedMemory1)) // sizeof(SHM_LIB::SharedMemory1)
+#undef META_0024
+#define META_0024 (t_meta)META_SharedMemory1_GetMemPtr_0  // SHM_LIB::SharedMemory1::GetMemPtr (static)
+#undef META_0029
+#define META_0029 0x00000000  // SHM_LIB::SharedMemory1::.ctor (non-static)
+
+t_meta SHM_LIB_meta[53] = {
+    META_0000,META_0001,META_0002,META_0003,    // 000000 10 01 00 00 00 00 04 0A 11 06 00 00 01 00 01 00    ................ 
+    META_0004,META_0005,META_0006,META_0007,    // 000016 00 00 00 00 00 00 02 00 00 00 0C 00 53 48 4D 5F    ............SHM_ 
+    META_0008,META_0009,META_0010,META_0011,    // 000032 4C 49 42 00 12 02 00 00 53 48 4D 5F 4C 49 42 00    LIB.....SHM_LIB. 
+    META_0012,META_0013,META_0014,META_0015,    // 000048 13 14 00 00 00 00 00 00 00 00 00 00 10 82 20 07    .............. . 
+    META_0016,META_0017,META_0018,META_0019,    // 000064 00 00 02 00 04 00 00 00 1E 00 FB FF 0A 00 13 00    ................ 
+    META_0020,META_0021,META_0022,META_0023,    // 000080 53 68 61 72 65 64 4D 65 6D 6F 72 79 31 00 00 00    SharedMemory1... 
+    META_0024,META_0025,META_0026,META_0027,    // 000096 00 00 00 00 13 00 01 00 0C 00 47 65 74 4D 65 6D    ..........GetMem 
+    META_0028,META_0029,META_0030,META_0031,    // 000112 50 74 72 00 00 00 00 00 05 00 00 00 2E 63 74 6F    Ptr..........cto 
+    META_0032,META_0033,META_0034,META_0035,    // 000128 72 00 00 00 13 07 00 00 00 00 00 00 00 00 00 00    r............... 
+    META_0036,META_0037,META_0038,META_0039,    // 000144 40 80 F0 06 00 00 00 00 08 00 00 00 00 00 0D 00    @............... 
+    META_0040,META_0041,META_0042,META_0043,    // 000160 2A 00 00 00 12 02 00 00 53 79 73 74 65 6D 00 00    *.......System.. 
+    META_0044,META_0045,META_0046,META_0047,    // 000176 1A 03 00 00 FF FF FD FF 4F 62 6A 65 63 74 00 00    ........Object.. 
+    META_0048,META_0049,META_0050,META_0051,    // 000192 1A 03 00 00 FF FF F9 FF 56 6F 69 64 00 00 00 00    ........Void.... 
+    META_0052    // 000208 01 00 00 00    .... 
+    };
+
+
+#else
+#error target endianess not defined
+#endif

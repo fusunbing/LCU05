@@ -1,0 +1,84 @@
+*** Using Compiler 'V5.06 (build 20)', folder: 'C:\Program Files (x86)\Keil_v5\ARM\ARMCC\Bin'
+Build target 'rt-thread_stm32f4xx'
+compiling pdsend.c...
+.\Trdp\src\vos\api\vos_types.h(92): warning:  #1215-D: #warning directive: "Using default standard types - target not defined!"
+  #warning "Using default standard types - target not defined!"
+.\Trdp\src\vos\windows\vos_private.h(59): error:  #20: identifier "HANDLE" is undefined
+      HANDLE  fd;                     /* File descriptor */
+.\Trdp\src\vos\api\vos_sock.h(126): error:  #20: identifier "fd_set" is undefined
+  typedef fd_set VOS_FDS_T;
+Trdp\pdsend.h(71): warning:  #1295-D: Deprecated declaration pd_deinit - give arg types
+  void pd_deinit ();
+Trdp\pdsend.h(88): warning:  #1295-D: Deprecated declaration pd_loop2 - give arg types
+  int pd_loop2 ();
+Trdp\pdsend.h(94): warning:  #1295-D: Deprecated declaration md_get - give arg types
+  MD_RECEIVE_PACKET_T* md_get ();
+Trdp\pdsend.c(193): error:  #29: expected an expression
+      TRDP_MEM_CONFIG_T       dynamicConfig   = {
+ULL, 100000, {}};
+Trdp\pdsend.c(347): warning:  #188-D: enumerated type mixed with another type
+Trdp\pdsend.c(382): warning:  #223-D: function "ntohl" declared implicitly
+          gRec[index].counter = ntohl(gRec[index].counter);
+Trdp\pdsend.c(469): warning:  #223-D: function "ntohl" declared implicitly
+                      if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[0].srcIP)))
+Trdp\pdsend.c(469): warning:  #223-D: function "inet_addr" declared implicitly
+                      if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[0].srcIP)))
+Trdp\pdsend.c(479): warning:  #223-D: function "ntohl" declared implicitly
+                      if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[2].srcIP)))
+Trdp\pdsend.c(479): warning:  #223-D: function "inet_addr" declared implicitly
+                      if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[2].srcIP)))
+Trdp\pdsend.c(496): warning:  #223-D: function "ntohl" declared implicitly
+                          gRec[4].counter = gray2hex(ntohl(gRec[4].counter));
+Trdp\pdsend.c(519): warning:  #223-D: function "ntohl" declared implicitly
+                      if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[0].srcIP)))
+Trdp\pdsend.c(519): warning:  #223-D: function "inet_addr" declared implicitly
+                      if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[0].srcIP)))
+Trdp\pdsend.c(530): warning:  #223-D: function "ntohl" declared implicitly
+                      if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[2].srcIP)))
+Trdp\pdsend.c(530): warning:  #223-D: function "inet_addr" declared implicitly
+                      if (pMsg->srcIpAddr == ntohl(inet_addr(gRec[2].srcIP)))
+Trdp\pdsend.c(660): error:  #20: identifier "fd_set" is undefined
+          fd_set  rfds;
+Trdp\pdsend.c(685): warning:  #223-D: function "FD_ZERO" declared implicitly
+          FD_ZERO(&rfds);
+Trdp\pdsend.c(686): warning:  #223-D: function "FD_SET" declared implicitly
+          FD_SET(gRecFD, &rfds);
+Trdp\pdsend.c(738): warning:  #111-D: statement is unreachable
+      return rv;
+Trdp\pdsend.c: 18 warnings, 4 errors
+compiling trdp_if.c...
+.\Trdp\src\vos\api\vos_types.h(92): warning:  #1215-D: #warning directive: "Using default standard types - target not defined!"
+  #warning "Using default standard types - target not defined!"
+.\Trdp\src\vos\windows\vos_private.h(59): error:  #20: identifier "HANDLE" is undefined
+      HANDLE  fd;                     /* File descriptor */
+.\Trdp\src\vos\api\vos_sock.h(126): error:  #20: identifier "fd_set" is undefined
+  typedef fd_set VOS_FDS_T;
+.\Trdp\src\vos\api\vos_utils.h(194): warning:  #1295-D: Deprecated declaration vos_terminate - give arg types
+  
+XT_DECL void vos_terminate ();
+Trdp\src\common\trdp_if.c(157): error:  #20: identifier "INADDR_ANY" is undefined
+          return 
+OS_INADDR_ANY;
+Trdp\src\common\trdp_if.c(1279): error:  #20: identifier "INADDR_ANY" is undefined
+                          (srcIpAddr == 
+OS_INADDR_ANY) ? appHandle->realIP : srcIpAddr,
+Trdp\src\common\trdp_if.c: 2 warnings, 4 errors
+compiling bsp_ethservice.c...
+.\Trdp\src\vos\api\vos_types.h(92): warning:  #1215-D: #warning directive: "Using default standard types - target not defined!"
+  #warning "Using default standard types - target not defined!"
+.\Trdp\src\vos\windows\vos_private.h(59): error:  #20: identifier "HANDLE" is undefined
+      HANDLE  fd;                     /* File descriptor */
+.\Trdp\pdsend.h(71): warning:  #1295-D: Deprecated declaration pd_deinit - give arg types
+  void pd_deinit ();
+.\Trdp\pdsend.h(88): warning:  #1295-D: Deprecated declaration pd_loop2 - give arg types
+  int pd_loop2 ();
+.\Trdp\pdsend.h(94): warning:  #1295-D: Deprecated declaration md_get - give arg types
+  MD_RECEIVE_PACKET_T* md_get ();
+Eth\bsp_ethservice.c(192): warning:  #177-D: variable "host" was declared but never referenced
+      struct hostent *host = NULL;
+Eth\bsp_ethservice.c(193): warning:  #550-D: variable "PrintfLen" was set but never used
+  		int PrintfLen = 0;
+Eth\bsp_ethservice.c: 6 warnings, 1 error
+".\build\rtthread-stm32f4xx.axf" - 9 Error(s), 26 Warning(s).
+Target not created.
+Build Time Elapsed:  00:00:03
