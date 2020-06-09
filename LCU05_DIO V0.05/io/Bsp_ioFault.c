@@ -42,24 +42,24 @@ static void input_fault_detect(void)
 }
 
 
-static rt_err_t Get_OUT_fault(uint32_t fb1, uint32_t ou, uint32_t fb2)
-{
-    rt_err_t ret = RT_EOK;
-    
-    if((ds.DIO[2].Bits_fb[12] == 1 && ds.DIO[0].Bits_ou[i] == 1 && ds.DIO[2].Bits_fb[13] == 1 && ds.DIO[0].Bits_fb[14] == 0)
-        || (ds.DIO[2].Bits_fb[12] == 1 && ds.DIO[0].Bits_ou[i] == 0 && ds.DIO[0].Bits_fb[14] == 1)
-        || (ds.DIO[2].Bits_fb[12] == 0 && ds.DIO[0].Bits_fb[14] == 1))
-    {
-        ret = RT_EOK;
-    }
-    else
-    {
-        ret = RT_ERROR;
-    }
-    
-    
-    return ret;
-}
+//static rt_err_t Get_OUT_fault(uint32_t fb1, uint32_t ou, uint32_t fb2)
+//{
+//    rt_err_t ret = RT_EOK;
+//    
+//    if((ds.DIO[2].Bits_fb[12] == 1 && ds.DIO[0].Bits_ou[i] == 1 && ds.DIO[2].Bits_fb[13] == 1 && ds.DIO[0].Bits_fb[14] == 0)
+//        || (ds.DIO[2].Bits_fb[12] == 1 && ds.DIO[0].Bits_ou[i] == 0 && ds.DIO[0].Bits_fb[14] == 1)
+//        || (ds.DIO[2].Bits_fb[12] == 0 && ds.DIO[0].Bits_fb[14] == 1))
+//    {
+//        ret = RT_EOK;
+//    }
+//    else
+//    {
+//        ret = RT_ERROR;
+//    }
+//    
+//    
+//    return ret;
+//}
 
 //output channels fault detect.
 static void output_fault_detect(void)
