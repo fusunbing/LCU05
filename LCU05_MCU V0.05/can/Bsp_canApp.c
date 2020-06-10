@@ -305,7 +305,7 @@ static void can_send_md(void)
         rt_memcpy(txMsg.Data, &testBuf[i * 8], txMsg.DLC);
         CANx_Send(&txMsg);
         CANx_Send(&txMsg);
-        rt_thread_delay(1);
+        rt_thread_delay(4);
     }
 }
 
@@ -316,7 +316,7 @@ static void ExtCanData_Send(void)
     {
         case SLOT_ID_MCU_A:
             can_send_remote_in();
-            rt_thread_delay(1);
+            rt_thread_delay(4);
             can_send_md();
             break;
    
@@ -324,7 +324,7 @@ static void ExtCanData_Send(void)
             if(ds.MCU[0].flt.lost == RT_ERROR)
             {
                 can_send_remote_in();
-                rt_thread_delay(1);
+                rt_thread_delay(4);
                 can_send_md();
             }
             else
@@ -337,7 +337,7 @@ static void ExtCanData_Send(void)
             if(ds.MCU[0].flt.lost == RT_ERROR && ds.MCU[1].flt.lost == RT_ERROR)
             {
                 can_send_remote_in();
-                rt_thread_delay(1);
+                rt_thread_delay(4);
                 can_send_md();
             }
             else

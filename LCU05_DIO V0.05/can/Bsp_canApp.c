@@ -174,6 +174,7 @@ void can_rx_handle_register(void)
 void can_rx_serve(CanRxMsg* pMsg)
 {
     CAN_EXTID_INFO info = {0};
+    static uint32_t slotID_Flt_cnt = 0;
     
     info.value = pMsg->ExtId;
     
@@ -183,6 +184,8 @@ void can_rx_serve(CanRxMsg* pMsg)
     //如果接收到源地址和自己的地址一致，重新读取slot_id
     if(info.id.src == ds.DIO[0].slotID)
     {
+        slotID_Flt_cnt++;
+        
         GetSlotID();
     }
     

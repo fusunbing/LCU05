@@ -4,7 +4,7 @@
 
 
 #define NODES_MAX       (40)
-#define FLT_TIMEOUT     (3)
+#define FLT_TIMEOUT     (5)
 
 
 static uint32_t can1_cnt[NODES_MAX] = { 0 };

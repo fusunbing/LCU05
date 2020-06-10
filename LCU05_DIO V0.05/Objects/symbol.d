@@ -1,0 +1,11 @@
+.\objects\symbol.o: finsh\symbol.c
+.\objects\symbol.o: finsh\finsh.h
+.\objects\symbol.o: .\Kernel\rtthread.h
+.\objects\symbol.o: .\Kernel\rtdef.h
+.\objects\symbol.o: .\Drivers\rtconfig.h
+.\objects\symbol.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\symbol.o: .\Kernel\rtdebug.h
+.\objects\symbol.o: .\Kernel\rtservice.h
+.\objects\symbol.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+.\objects\symbol.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\objects\symbol.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

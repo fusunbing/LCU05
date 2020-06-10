@@ -67,7 +67,17 @@ static MVB_PORT_CFG TC2_MVB_Device = {0};
 
 static rt_uint32_t mvb_event_flag = 0;
 
+static void Bsp_mvbService_Task(void* parameter);
 
+
+/*************************************************************************
+* Function Name  : MVB_Data_Init(void)
+* Description    : 初始化MVB接收、发送缓冲区空间.
+*                  [11/5/2019 zyh] 
+* Input          : None
+* Output         : None
+* Return         : None
+**************************************************************************/
 static void MVB_Data_Init(void)
 {
 	uint8_t index = 0;
@@ -254,21 +264,63 @@ static void MVB_Device_Read_Data(MVB_PORT_CFG *PORT_INFO)
     uint8_t errCnt  = 0;
     uint8_t isFresh = 0;
 	
-	for(portindex = 0; portindex < PORT_INFO->sinkPortCount; portindex++)
+	for(portindex = 0;portindex < PORT_INFO->sinkPortCount;portindex++)
 	{
 		portNum = PORT_INFO->sink_port[portindex].portnum;
 		
+//			if(gf_get_pd(portindex + 1, mdbuf, 32) != 0)
 		if(gf_get_pd(portNum, mdbuf, PORT_INFO->sink_port[portindex].length) != 0)
 		{
 			rt_memcpy(Mvb_Recv_Data[portNum].data, mdbuf, PORT_INFO->sink_port[portindex].length);
 			Mvb_Recv_Data[portNum].fresh_data = 1;
+            
 		}
+		if(mvb_rx_prt == 1)
+		{
+			rt_kprintf("+-b0 -+-b1 -+-b2 -+-b3 -+-b4 -+-b5 -+-b6 -+-b7 -+\r\n");
+			rt_kprintf("| %3d | %3d | %3d | %3d | %3d | %3d | %3d | %3d |\r\n", 
+					   mdbuf[0], mdbuf[1], 
+					   mdbuf[2], mdbuf[3], 
+					   mdbuf[4], mdbuf[5], 
+					   mdbuf[6], mdbuf[7]);
+			rt_kprintf("+-b8 -+-b9 -+-b10-+-b11-+-b12-+-b13-+-b14-+-b15-+\r\n");
+			rt_kprintf("| %3d | %3d | %3d | %3d | %3d | %3d | %3d | %3d |\r\n", 
+					   mdbuf[8], mdbuf[9], 
+					   mdbuf[10], mdbuf[11], 
+					   mdbuf[12], mdbuf[13], 
+					   mdbuf[14], mdbuf[15]);
+			rt_kprintf("+-b16-+-b17-+-b18-+-b19-+-b20-+-b21-+-b22-+-b23-+\r\n");
+			rt_kprintf("| %3d | %3d | %3d | %3d | %3d | %3d | %3d | %3d |\r\n", 
+					   mdbuf[16], mdbuf[17], 
+					   mdbuf[18], mdbuf[19], 
+					   mdbuf[20], mdbuf[21], 
+					   mdbuf[22], mdbuf[23]);
+			rt_kprintf("+-b24-+-b25-+-b26-+-b27-+-b28-+-b29-+-b30-+-b31-+\r\n");
+			rt_kprintf("| %3d | %3d | %3d | %3d | %3d | %3d | %3d | %3d |\r\n", 
+					   mdbuf[24], mdbuf[25], 
+					   mdbuf[26], mdbuf[27], 
+					   mdbuf[28], mdbuf[29], 
+					   mdbuf[30], mdbuf[31]);
+		}
+		
+		
 	}
-
+//	if(gf_get_pd(2, mdbuf, 16) != 0)
+//	{
+//		fresh = 1;
+//	}
+	
 }
 
 
-//MVB复位引脚初始化
+/*************************************************************************
+* Function Name  : void MVB_Card_RST_GPIO_Init(void)
+* Description    : MVB复位引脚初始化.
+*                  [11/10/2014 lily] 
+* Input          : None
+* Output         : None
+* Return         : None
+**************************************************************************/
 static void MVB_Card_RST_GPIO_Init(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure = {0};
@@ -286,9 +338,19 @@ static void MVB_Card_RST_GPIO_Init(void)
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
 	GPIO_Init(MVB_RST_PIN_PORT, &GPIO_InitStructure);
+	 
+	
+	
 }
 
-
+/*************************************************************************
+* Function Name  : void MVB_HW_Reset(void)
+* Description    : Mvb 硬件复位操作.
+*                  [11/10/2014 lily] 
+* Input          : None
+* Output         : None
+* Return         : None
+**************************************************************************/
 static void MVB_HW_Reset(void)
 {
     //-----------------------------------------------------------------------
@@ -306,7 +368,14 @@ static void MVB_HW_Reset(void)
 	rt_thread_delay(80);
 }
 
-
+/*************************************************************************
+* Function Name  : int MVB_Device_Init (void) 
+* Description    : Mvb controler default init.
+*                  [11/10/2014 lily] 
+* Input          : None
+* Output         : None
+* Return         : None
+**************************************************************************/
 static int MVB_Device_Init (void)
 {
     uint8_t  retWert = 0;
@@ -462,8 +531,38 @@ static void MVB_CAN_Data(MVB_PORT_CFG *PORT_INFO)
 	}
 }
 
+void  Bsp_MvbTask_CreateApp(void)
+{
+	rt_thread_t bsp_mvbService_thread;
+    //-----------------------------------------------------------------------
+    //-----------------------------------------------------------------------
+    // MVB service task
+    //-----------------------------------------------------------------------
+	MVB_Card_RST_GPIO_Init();
+	
+	MVB_Data_Init();
+	MVB_Event_Init();
+    bsp_mvbService_thread = rt_thread_create("MvbSrv",
+                                             Bsp_mvbService_Task,
+                                             RT_NULL,
+                                             //sizeof(bsp_mvbService_stack),
+											 BSP_MVB_SERVICE_STACKSIZE,
+                                             BSP_MVB_SERVICE_PRIORITY, 
+                                             20);
+    if (bsp_mvbService_thread != RT_NULL)
+        rt_thread_startup(bsp_mvbService_thread);
+    
+}
 
-static void mvbService_entry(void* parameter)
+/*************************************************************************
+* Function Name  : Bsp_mvbService_Task(void* parameter) 
+* Description    : mvb service task [11/2/2014 lily] 
+*                 
+* Input          : None
+* Output         : None
+* Return         : None
+**************************************************************************/
+static void Bsp_mvbService_Task(void* parameter)
 {
     //-----------------------------------------------------------------------
     // Mvb service task event object init
@@ -510,31 +609,25 @@ static void mvbService_entry(void* parameter)
 				break;
 		}
 		
+		
 		rt_thread_delay(200);
+			
     }
 }
 
-
-void  Bsp_MvbTask_CreateApp(void)
+void Mvb_rx_prt(void)
 {
-	rt_thread_t mvbService_thread;
-    
-    //-----------------------------------------------------------------------
-    // MVB service task
-    //-----------------------------------------------------------------------
-	MVB_Card_RST_GPIO_Init();
-	
-	MVB_Data_Init();
-	MVB_Event_Init();
-    
-    mvbService_thread = rt_thread_create("MvbSrv",
-                                             mvbService_entry,
-                                             RT_NULL,
-											 BSP_MVB_SERVICE_STACKSIZE,
-                                             BSP_MVB_SERVICE_PRIORITY, 
-                                             20);
-    if (mvbService_thread != RT_NULL)
-        rt_thread_startup(mvbService_thread);
-    
+	mvb_rx_prt = 1;
 }
+
+void Stop_Mvb_rx_prt(void)
+{
+	mvb_rx_prt = 0;
+}
+
+#include "finsh.h"
+FINSH_FUNCTION_EXPORT(Mvb_rx_prt,print mvb receive data)
+FINSH_FUNCTION_EXPORT(Stop_Mvb_rx_prt,stop print mvb receive data)
+
+
 

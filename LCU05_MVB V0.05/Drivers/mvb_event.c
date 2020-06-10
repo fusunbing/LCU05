@@ -1,12 +1,8 @@
-
-
 #include "mvb_event.h"
-
 
 static struct rt_event mvb_event;
 static rt_uint32_t mvb_event_recv = 0;
 static rt_err_t mvb_event_init = 0xFF;
-
 
 void MVB_Send_Read()
 {
@@ -16,7 +12,6 @@ void MVB_Send_Read()
 	}
 }
 
-
 void MVB_Send_Write()
 {
 	if(mvb_event_init == RT_EOK)
@@ -24,7 +19,6 @@ void MVB_Send_Write()
 		rt_event_send(&mvb_event,MVB_EVENT_WRITE);
 	}
 }
-
 
 rt_uint32_t MVB_Check_Event()
 {
@@ -36,9 +30,15 @@ rt_uint32_t MVB_Check_Event()
 	return mvb_event_recv;
 }
 
-
 void MVB_Event_Init()
 {
 	mvb_event_init = rt_event_init(&mvb_event,"Mvb_Event",RT_IPC_FLAG_FIFO);
 }
+
+
+
+
+
+
+
 

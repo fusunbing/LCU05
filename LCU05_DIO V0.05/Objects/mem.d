@@ -1,0 +1,12 @@
+.\objects\mem.o: Kernel\mem.c
+.\objects\mem.o: .\Kernel\rthw.h
+.\objects\mem.o: .\Kernel\rtthread.h
+.\objects\mem.o: .\Kernel\rtdef.h
+.\objects\mem.o: .\Drivers\rtconfig.h
+.\objects\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\mem.o: .\Kernel\rtdebug.h
+.\objects\mem.o: .\Kernel\rtservice.h
+.\objects\mem.o: .\finsh\finsh.h
+.\objects\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+.\objects\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\objects\mem.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

@@ -1,0 +1,12 @@
+.\objects\finsh_var.o: finsh\finsh_var.c
+.\objects\finsh_var.o: .\finsh\finsh.h
+.\objects\finsh_var.o: .\Kernel\rtthread.h
+.\objects\finsh_var.o: .\Kernel\rtdef.h
+.\objects\finsh_var.o: .\Drivers\rtconfig.h
+.\objects\finsh_var.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+.\objects\finsh_var.o: .\Kernel\rtdebug.h
+.\objects\finsh_var.o: .\Kernel\rtservice.h
+.\objects\finsh_var.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h
+.\objects\finsh_var.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+.\objects\finsh_var.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\finsh_var.o: finsh\finsh_var.h
