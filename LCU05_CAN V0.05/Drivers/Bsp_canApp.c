@@ -28,12 +28,17 @@ static void can1_rx_handle(CAN_RX_DATA_RAM * pDate)
     CanNode_Clear(1, info.id.src);
     CanNode_Clear(1, ds.slotID);
     
-    if(info.id.funID >= 128)
+    if(info.id.funID >= 0x80 || info.id.funID == CAN_FUN_REMOTE_IN || info.id.funID == CAN_FUN_MVB_RTC)
     {
         if(info.id.dst == SLOT_ID_CAN || info.id.dst == CAN_ADDR_NET_GROUP)
         {
-            info.id.src = ds.boxID;  //对外地址
+            info.id.src = ds.carID;  //对外地址
             info.id.dst = CAN_ADDR_BROADCAST; //广播帧
+            
+            if(info.id.funID == CAN_FUN_REMOTE_IN)
+            {
+                info.id.funID = ds.carID * 16 + 0x80;
+            }
             
             txMsg.ExtId = info.value;
             txMsg.IDE = CAN_ID_EXT;
@@ -56,7 +61,7 @@ static void can2_rx_handle(CAN_RX_DATA_RAM * pDate)
     info.value = pDate->rxMsg.ExtId;
 
     CanNode_Clear(2, info.id.src);
-    CanNode_Clear(2, ds.boxID);
+    CanNode_Clear(2, ds.carID);
     
     info.id.src = ds.slotID; //车节号改为槽位号
     
@@ -85,11 +90,12 @@ static void can1_send_lifesign(void)
     txMsg.ExtId = info.value;
     txMsg.IDE = CAN_ID_EXT;
     txMsg.RTR = 0;
-    txMsg.DLC = 3;
+    txMsg.DLC = 4;
     
     txMsg.Data[0] = lifesign++;     //生命信号
-    txMsg.Data[1] = 5;              //软件版本号
-    txMsg.Data[2] = (uint8_t)Get_CanSts(2, ds.boxID);
+    txMsg.Data[1] = ds.version;     //软件版本号
+    txMsg.Data[2] = ds.carID;       //车节号
+    txMsg.Data[3] = (uint8_t)ds.can2_sts;   //外网CAN2状态
     
     Can1Q_Push_Tx_Msg(1, rt_tick_get(), &txMsg);
 }
@@ -254,17 +260,20 @@ void canApp_serve(void)
 {
     CanNode_Update();
     
+    ds.can1_sts = Get_CanSts(1, ds.slotID);
+    ds.can2_sts = Get_CanSts(2, ds.carID);
+    
     can1_send_lifesign();
 
-    if(Get_CanSts(1, ds.slotID) == RT_EOK && Get_CanSts(2, ds.boxID) == RT_EOK)
+    if(ds.can1_sts == RT_EOK && ds.can2_sts == RT_EOK)
     {
         System_Led_SetMode(MODE_FLASH_FAST);
     }
-    else if(Get_CanSts(1, ds.slotID) == RT_ERROR && Get_CanSts(2, ds.boxID) == RT_EOK)
+    else if(ds.can1_sts == RT_ERROR && ds.can2_sts == RT_EOK)
     {
         System_Led_SetMode(MODE_ON);
     }
-    else if(Get_CanSts(1, ds.slotID) == RT_EOK && Get_CanSts(2, ds.boxID) == RT_ERROR)
+    else if(ds.can1_sts == RT_EOK && ds.can2_sts == RT_ERROR)
     {
         System_Led_SetMode(MODE_FLASH_SLOW);
     }

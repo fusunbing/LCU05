@@ -7,10 +7,11 @@
 extern "C" {
 #endif 
 
-    
+
 #include <rtthread.h>
 #include "stm32f4xx.h"
 #include "Bsp_led.h"
+
 
 //»Ìº˛∞Ê±æ∫≈
 #define MAJOR_VERSION		(0) //÷˜∞Ê±æ∫≈
@@ -30,15 +31,6 @@ extern "C" {
 #define	BOARD_TYPE_ID_CAN	(3)
 #define	BOARD_TYPE_ID_ETU	(4)
 #define	BOARD_TYPE_ID_IO	(5)
-
-
-//kw box id
-#define	KW_BOX_ID_A1		(0x81)
-#define	KW_BOX_ID_B1		(KW_BOX_ID_A1+1)
-#define	KW_BOX_ID_C1		(KW_BOX_ID_A1+2)
-#define	KW_BOX_ID_C2        (KW_BOX_ID_A1+3)
-#define	KW_BOX_ID_B2        (KW_BOX_ID_A1+4)
-#define	KW_BOX_ID_A2        (KW_BOX_ID_A1+5)
 
 #define BOARD_IN_COUNT      (12)
 #define BOARD_OU_COUNT      (7)
@@ -81,6 +73,16 @@ typedef struct
 
 typedef struct
 {
+    uint8_t board           :1;     //MVB∞Âπ ’œ
+    uint8_t can1            :1;     //MVB∞ÂCAN1π ’œ
+    uint8_t can2            :1;     //MVB∞ÂCAN2π ’œ
+    uint8_t lost            :1;     //MVB∞Â∂™ ß
+    uint8_t res             :4;        
+}BOARD_MVB_FLT, *PBOARD_MVB_FLT;
+
+
+typedef struct
+{
     uint8_t ext_can1        :1;     //Õ‚Õ¯CAN1π ’œ
     uint8_t ext_can2        :1;     //Õ‚Õ¯CAN2π ’œ
     uint8_t can1            :1;     //ƒ⁄Õ¯CAN1π ’œ
@@ -90,16 +92,13 @@ typedef struct
 
 
 typedef struct
-{
-    uint8_t mvb_module      :1;     //MVB∞Âπ ’œ
-    uint8_t mvb_can1        :1;     //MVB∞ÂCAN1π ’œ
-    uint8_t mvb_can2        :1;     //MVB∞ÂCAN2π ’œ
-    uint8_t res1            :1;        
-    uint8_t eth_module      :1;     //ETH∞Âπ ’œ
-    uint8_t eth_can1        :1;     //ETH∞ÂCAN2π ’œ
-    uint8_t eth_can2        :1;     //ETH∞ÂCAN2π ’œ
-    uint8_t res2            :1;
-}BOARD_NET_FLT, *PBOARD_NET_FLT;
+{      
+    uint8_t board           :1;     //ETH∞Âπ ’œ
+    uint8_t can1            :1;     //ETH∞ÂCAN2π ’œ
+    uint8_t can2            :1;     //ETH∞ÂCAN2π ’œ
+    uint8_t lost            :1;     //ETU∞Â∂™ ß
+    uint8_t res             :4;
+}BOARD_ETU_FLT, *PBOARD_ETU_FLT;
 
 
 typedef struct
@@ -114,7 +113,7 @@ typedef struct
 
 typedef struct
 {
-    uint8_t              :1;     //DIO∞Âπ ’œ
+    uint8_t board           :1;     //DIO∞Âπ ’œ
     uint8_t can1            :1;     //DIO∞ÂCAN1π ’œ
     uint8_t can2            :1;     //DIO∞ÂCAN2π ’œ
     uint8_t in              :1;     //DIO∞Â ‰»Îπ ’œ
@@ -126,45 +125,27 @@ typedef struct
 
 typedef struct
 {
-    uint16_t addr;  //∂Àø⁄µÿ÷∑
-    uint16_t cycle; //∂Àø⁄∏¸–¬÷‹∆⁄
-    
-    uint8_t index;  //∂Àø⁄∫≈
-    uint8_t len;    //∂Àø⁄ ˝æ›≥§∂»£∫2£¨4£¨8£¨16£¨32
-    uint8_t direct; //0£∫‘¥∂Àø⁄£¨1£∫Àﬁ∂Àø⁄
-    uint8_t flag;
-    
-    uint8_t data[32];
-}MVB_PORT_INFO_STU, *PMVB_PORT_INFO_STU;
-
-
-typedef struct
-{
     uint8_t date[32];
 }MVB_DATA_STU, *PMVB_DATA_STU;
 
 
-//typedef struct 
-//{
-//    uint16_t lifeSignal;
-//    BOARD_PWR_FLT pwr;
-//    BOARD_CAN_FLT can;
-//    
-//    BOARD_NET_FLT net;
-//    BOARD_MCU_FLT mcu[3];
-//    
-//    BOARD_DIO_FLT dio[27];
-//    
-//    uint8_t inBuf[18];
-//    uint8_t ouBuf[9];
-//    
-//    uint16_t res;
-//}CAN_DATA_STU, *PCAN_DATA_STU;
-
-
-typedef struct
+typedef struct 
 {
-    uint8_t date[96];
+    uint16_t lifeSignal; //…˙√¸–≈∫≈
+    
+    BOARD_PWR_FLT pwr;
+    BOARD_CAN_FLT can;    
+    BOARD_MVB_FLT mvb;
+    BOARD_ETU_FLT etu;
+    
+    BOARD_MCU_FLT mcu[3];
+    
+    BOARD_DIO_FLT dio[27];
+    
+    uint8_t inBuf[14];
+    uint8_t ouBuf[8];
+    
+    uint16_t res;
 }CAN_DATA_STU, *PCAN_DATA_STU;
 
 
@@ -181,8 +162,18 @@ typedef struct
     uint8_t min;
     uint8_t sec;
     
-    uint8_t info[16]; //
+    uint8_t carID;
+    uint8_t kwVer;
+    
 }KW_SHM_STU, *PKW_SHM_STU;
+
+typedef struct 
+{
+    uint8_t lifesign;
+    uint8_t version;
+    uint8_t carID;
+    BOARD_DIO_FLT flt;
+}BOARD_MVB_STU, *PBOARD_MVB_STU;
 
 
 typedef struct 
@@ -219,7 +210,9 @@ typedef struct
     uint8_t res;
     
     uint8_t ou[8];
+    uint8_t remote_in[8];
     uint32_t *Bits_ou;
+    uint32_t *Bits_remote_in;
 }BOARD_MCU_STU, *PBOARD_MCU_STU;
 
 
@@ -242,6 +235,22 @@ typedef struct
     uint8_t dc110v;
     uint8_t dc5v_flt;
     uint8_t dc110v_flt;
+    
+    uint8_t mvb_Lifesign;
+    uint8_t mvb_Version;
+    uint8_t mvb_CarID;
+    uint8_t mvb_res;
+    
+    uint8_t can1_Lifesign;
+    uint8_t can1_Version;
+    uint8_t can1_CarID;
+    uint8_t can1_ExtCan;
+    
+    uint8_t can2_Lifesign;
+    uint8_t can2_Version;
+    uint8_t can2_CarID;
+    uint8_t can2_ExtCan;
+
 }DS_STU,*PDS_STU;
 
 

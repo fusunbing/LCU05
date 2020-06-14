@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>STM32F407ZGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F4xx_DFP.2.13.0</PackID>
+          <PackID>Keil.STM32F4xx_DFP.2.4.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20000000,0x20000) IRAM2(0x10000000,0x10000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -457,11 +457,6 @@
               <FileType>1</FileType>
               <FilePath>.\Drivers\userApp.c</FilePath>
             </File>
-            <File>
-              <FileName>mvb_event.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Drivers\mvb_event.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -853,9 +848,14 @@
               <FilePath>.\Mvb\mvbdrv_zz.c</FilePath>
             </File>
             <File>
-              <FileName>MVB_Cfg.c</FileName>
+              <FileName>Bsp_mvbService.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Mvb\MVB_Cfg.c</FilePath>
+              <FilePath>.\Drivers\Bsp_mvbService.c</FilePath>
+            </File>
+            <File>
+              <FileName>mvb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Mvb\mvb.c</FilePath>
             </File>
           </Files>
         </Group>

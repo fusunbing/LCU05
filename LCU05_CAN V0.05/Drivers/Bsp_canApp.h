@@ -22,16 +22,25 @@ extern "C" {
 #define CAN_ADDR_NET_GROUP             	(0x3F)
 #define CAN_ADDR_BROADCAST             	(0xFF)
 	
-#define CAN_FUN_INPUT                   (0x01)
-#define CAN_FUN_OUTPUT                  (0x02)
-#define CAN_FUN_REMOTE_IN               (0x03)
-    
-#define CAN_FUN_POWER_ON                (0x10)
-#define CAN_FUN_DIO_FLT                 (0x11)
+//function id
+#define CAN_FUN_INPUT                   (1)
+#define CAN_FUN_OUTPUT                  (2)
+#define CAN_FUN_REMOTE_IN               (3)
 
-#define CAN_FUN_MVB_LIFESIGNAL          (0x20)
-#define CAN_FUN_MVB_RTC                 (0x20)
+#define CAN_FUN_MVB_RTC                 (5)
 
+#define CAN_FUN_IO_STS                  (9)
+#define CAN_FUN_POWER_ON                (10)
+#define CAN_FUN_SELF_CHECK              (11)
+
+#define CAN_FUN_CAR1_DATA               (0x80)
+#define CAN_FUN_CAR2_DATA               (0x90)
+#define CAN_FUN_CAR3_DATA               (0xA0)
+#define CAN_FUN_CAR4_DATA               (0xB0)
+#define CAN_FUN_CAR5_DATA               (0xC0)
+#define CAN_FUN_CAR6_DATA               (0xD0)
+#define CAN_FUN_CAR7_DATA               (0xE0)
+#define CAN_FUN_CAR8_DATA               (0xF0)
 
 
 typedef union

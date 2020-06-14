@@ -3,23 +3,6 @@
 #include "Bsp_gpio.h"
 
 
-enum PIN_NAME
-{ 
-    SLOT_ID1 = 0,
-    SLOT_ID2,
-    SLOT_ID3,
-    SLOT_ID4,
-    BOX_ID1,
-    BOX_ID2,
-    BOX_ID3,
-    BOX_ID4,
-    BOARD_TYPE_ID1,
-    BOARD_TYPE_ID2,
-    BOARD_TYPE_ID3,
-    BOARD_TYPE_ID4,
-};
-
-
 static const PIN_INDEX pins[] =
 {
     {PIN_MODE_INPUT, RCC_AHB1Periph_GPIOC, GPIOC, GPIO_Pin_0},      //SLOT ID 1
@@ -37,41 +20,9 @@ static const PIN_INDEX pins[] =
 };
 
 
-static uint8_t GetPin(uint32_t index)
+uint8_t GetPin(uint32_t index)
 {
     return GPIO_ReadInputDataBit(pins[index].gpio, pins[index].pin);
-}
-
-static void Get_BoardID(void)
-{
-    BYTE_TO_BIT id = {0};
-    
-//    do
-//    {
-//        id.Bits.bit0 = GetPin(BOARD_TYPE_ID1);
-//        id.Bits.bit1 = GetPin(BOARD_TYPE_ID2);
-//        id.Bits.bit2 = GetPin(BOARD_TYPE_ID3);
-//        id.Bits.bit3 = GetPin(BOARD_TYPE_ID4);
-//        ds.boardTypeID = id.value;
-//    }while(ds.boardTypeID != BOARD_TYPE_ID_CAN);
-    
-    do
-    {
-        id.Bits.bit0 = GetPin(SLOT_ID1);
-        id.Bits.bit1 = GetPin(SLOT_ID2);
-        id.Bits.bit2 = GetPin(SLOT_ID3);
-        id.Bits.bit3 = GetPin(SLOT_ID4);
-        ds.slotID = id.value;
-    }while(ds.slotID != SLOT_ID_CAN);
-    
-    do
-    {
-        id.Bits.bit0 = GetPin(BOX_ID1);
-        id.Bits.bit1 = GetPin(BOX_ID2);
-        id.Bits.bit2 = GetPin(BOX_ID3);
-        id.Bits.bit3 = GetPin(BOX_ID4);
-        ds.boxID = id.value; 
-    }while(ds.boxID > 5);
 }
 
 
@@ -116,7 +67,5 @@ void stmPinsInit(void)
         
         GPIO_Init(pins[i].gpio, &GPIO_InitStructure);
     }
-    
-    Get_BoardID();
 }
 

@@ -28,6 +28,14 @@ static void DS_BitBand_Init(void)
     ds.Bits_inBuf = bitBand(ds.inBuf);
     ds.Bits_ouBuf = bitBand(ds.ouBuf);
     
+    ds.MCU[0].Bits_ou = bitBand(ds.MCU[0].ou);
+    ds.MCU[1].Bits_ou = bitBand(ds.MCU[1].ou);
+    ds.MCU[2].Bits_ou = bitBand(ds.MCU[2].ou);
+    
+    ds.MCU[0].Bits_remote_in = bitBand(ds.MCU[0].remote_in);
+    ds.MCU[1].Bits_remote_in = bitBand(ds.MCU[1].remote_in);
+    ds.MCU[2].Bits_remote_in = bitBand(ds.MCU[2].remote_in);
+    
     for(i = 0; i < IO_BOARD_MAX; i++)
     {
         ds.DIO[i].Bits_in = bitBand(ds.DIO[i].in);
@@ -90,17 +98,17 @@ void userApp_init(void)
     }while(ds.carID > 3);
     
     
-    pKW_SHM->info[0] = ds.carID;
+    pKW_SHM->carID = ds.carID;
 }
 
 
 //输入通道三取二算法
 static void two_out_of_three(void)
 {
-    uint8_t i;
-    uint8_t group;
-    uint8_t offset;
-    uint8_t index;
+    uint32_t i;
+    uint32_t group;
+    uint32_t offset;
+    uint32_t index;
 
     for(group = 0; group < IO_GROUP_MAX; group++)
     {
@@ -111,6 +119,15 @@ static void two_out_of_three(void)
         {
             ds.Bits_inBuf[offset + i] = ((ds.DIO[index].Bits_in[i] + ds.DIO[index + 1].Bits_in[i] + ds.DIO[index + 2].Bits_in[i]) >= 2) ? 1 : 0;
         }
+    }
+    
+    rt_memcpy(ds.MCU[ds.slotID - SLOT_ID_MCU_A].remote_in, &ds.inBuf[ds.carID * 8 + 64], 8);
+    
+    index = 512 + 64 * ds.carID; //计算车辆列车线信号偏移
+    
+    for(i = 0; i < 64; i++)
+    {
+        ds.Bits_inBuf[index + i] = ((ds.MCU[0].Bits_remote_in[i] + ds.MCU[1].Bits_remote_in[i] + ds.MCU[2].Bits_remote_in[i]) >= 2) ? 1 : 0;
     }
 }
 

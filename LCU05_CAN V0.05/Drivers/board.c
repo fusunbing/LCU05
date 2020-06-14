@@ -164,6 +164,9 @@ void rt_hw_board_init(void)
     //硬件看门狗初始化
     HwWDog_Init();
     
+    //读取车节号、槽位号
+    userApp_init();
+    
 	//CPU占用率计算模块初始化
 	cpu_usage_init();
 	rt_kprintf("\r\n+ CPU USAGE INFO: Can use console see about the cpu use perecent!\r\n");

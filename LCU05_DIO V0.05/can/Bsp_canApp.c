@@ -218,12 +218,10 @@ static void Can_Send_PwrOn(void)
     txMsg.ExtId = info.value;
     txMsg.IDE = CAN_ID_EXT;
     txMsg.RTR = 0;
-    txMsg.DLC = 4;
+    txMsg.DLC = 2;
     
     txMsg.Data[0] = lifesign++;     //生命信号
     txMsg.Data[1] = MINOR_VERSION;  //软件版本号
-    txMsg.Data[2] = ds.DIO[0].in[0];
-    txMsg.Data[3] = ds.DIO[0].in[1];
 
     CANx_Send(&txMsg);
 }
@@ -249,8 +247,11 @@ static void Can_Send_Input(void)
     txMsg.Data[0] = ds.DIO[0].in[0];
     txMsg.Data[1] = ds.DIO[0].in[1];
     
-    CANx_Send(&txMsg);
-    CANx_Send(&txMsg);
+    if(can_manage_sts == CAN_MANAGE_SCAN)
+    {
+        CANx_Send(&txMsg);
+        CANx_Send(&txMsg);
+    }
 }
 
 

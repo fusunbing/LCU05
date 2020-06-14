@@ -1,6 +1,7 @@
 
 
 #include "userApp.h"
+#include "Bsp_gpio.h"
 
 
 DS_STU ds = {0};
@@ -8,7 +9,34 @@ DS_STU ds = {0};
 
 void userApp_init(void)
 {
-
+    BYTE_TO_BIT id = {0};
+    
+//    do
+//    {
+//        id.Bits.bit0 = GetPin(BOARD_TYPE_ID1);
+//        id.Bits.bit1 = GetPin(BOARD_TYPE_ID2);
+//        id.Bits.bit2 = GetPin(BOARD_TYPE_ID3);
+//        id.Bits.bit3 = GetPin(BOARD_TYPE_ID4);
+//        ds.boardTypeID = id.value;
+//    }while(ds.boardTypeID != BOARD_TYPE_ID_CAN);
+    
+    do
+    {
+        id.Bits.bit0 = GetPin(SLOT_ID1);
+        id.Bits.bit1 = GetPin(SLOT_ID2);
+        id.Bits.bit2 = GetPin(SLOT_ID3);
+        id.Bits.bit3 = GetPin(SLOT_ID4);
+        ds.slotID = id.value;
+    }while(ds.slotID != SLOT_ID_CAN);
+    
+    do
+    {
+        id.Bits.bit0 = GetPin(BOX_ID1);
+        id.Bits.bit1 = GetPin(BOX_ID2);
+        id.Bits.bit2 = GetPin(BOX_ID3);
+        id.Bits.bit3 = GetPin(BOX_ID4);
+        ds.carID = id.value; 
+    }while(ds.carID > 3);
 
 }
 

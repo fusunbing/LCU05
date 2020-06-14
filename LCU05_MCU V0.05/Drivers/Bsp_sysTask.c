@@ -14,7 +14,7 @@
 
 
 #define SYS_TASK_STACK_SIZE         (1024)
-#define SYS_TASK__PRIORITY          (10)
+#define SYS_TASK_PRIORITY           (10)
 
 
 ALIGN(RT_ALIGN_SIZE)
@@ -224,7 +224,7 @@ static void Bsp_sysTask_Init(void)
             RT_NULL,
             sys_thread_stack, 
             SYS_TASK_STACK_SIZE,
-            SYS_TASK__PRIORITY, 
+            SYS_TASK_PRIORITY, 
             8);
         
     if(RT_EOK == ret)

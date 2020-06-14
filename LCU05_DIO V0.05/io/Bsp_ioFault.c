@@ -5,8 +5,8 @@
 #include "Can_fault_detect.h"
 
 
-#define IN_FLT_CNT         (5)
-#define OU_FLT_CNT         (5)
+#define IN_FLT_CNT         (8)
+#define OU_FLT_CNT         (8)
 
 
 static uint32_t in_cnt[IN_CNT] = { 0 };

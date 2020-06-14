@@ -31,14 +31,6 @@ extern "C" {
 #define	BOARD_TYPE_ID_IO	(5)
 
 
-#define	KW_BOX_ID_A1		(0)
-#define	KW_BOX_ID_B1		(KW_BOX_ID_A1 + 1)
-#define	KW_BOX_ID_C1		(KW_BOX_ID_A1 + 2)
-#define	KW_BOX_ID_C2        (KW_BOX_ID_A1 + 3)
-#define	KW_BOX_ID_B2        (KW_BOX_ID_A1 + 4)
-#define	KW_BOX_ID_A2        (KW_BOX_ID_A1 + 5)
-
-
 typedef union
 {
     struct
@@ -368,16 +360,7 @@ typedef struct
 
 typedef struct
 {
-    uint16_t in[6];
-    uint16_t ou[3];
-    
-
-
-}LCU_STATUS_STU, *PLCU_STATUS_STU;
-
-typedef struct
-{
-    uint8_t life[8];
+    uint16_t lifesign;
     uint8_t rtc[8];
     uint8_t remoteIn[8];
     
@@ -388,11 +371,15 @@ typedef struct
 
 typedef struct
 {
-    CAN_DATE_STU lcu[8];
-    uint8_t boxID;
+    uint8_t carID;
     uint8_t slotID;
     uint8_t boardTypeID;
-    uint8_t res;
+    uint8_t version;
+    
+    uint32_t can1_sts;  //ÄÚÍø×´Ì¬
+    uint32_t can2_sts;  //ÍâÍø×´Ì¬
+    
+    CAN_DATE_STU lcu[8];
 }DS_STU,*PDS_STU;
 
 

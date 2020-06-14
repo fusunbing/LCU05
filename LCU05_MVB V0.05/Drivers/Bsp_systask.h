@@ -42,9 +42,8 @@
 #define IWDG_EN		(1)
 
 
-
 void System_bsptask_create(void);
-void CheckSystemRst(uint32_t rccReg);
+
 
 #endif
 
