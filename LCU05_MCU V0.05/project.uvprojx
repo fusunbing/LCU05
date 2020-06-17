@@ -472,6 +472,11 @@
               <FileType>1</FileType>
               <FilePath>.\Drivers\Bsp_ITempMonit.c</FilePath>
             </File>
+            <File>
+              <FileName>Bsp_mvb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Drivers\Bsp_mvb.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

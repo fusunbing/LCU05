@@ -255,9 +255,10 @@ void lcu_version(void)
 {
     uint32_t i;
     
-    //rt_kprintf("+  mvb  : V%d.%d  \r\n", ds.DIO[0].version>>5, ds.DIO[0].version&0x1F);
-    //rt_kprintf("+  can  : V%d.%d  \r\n", ds.DIO[1].version>>5, ds.DIO[1].version&0x1F);
-    //rt_kprintf("+  eth  : V%d.%d  \r\n", ds.DIO[2].version>>5, ds.DIO[2].version&0x1F);
+    rt_kprintf("+  mvb  : V%d.%d  \r\n", ds.mvb_Version>>5, ds.mvb_Version&0x1F);
+    rt_kprintf("+  can1 : V%d.%d  \r\n", ds.can1_Version>>5, ds.can1_Version&0x1F);
+    rt_kprintf("+  can2 : V%d.%d  \r\n", ds.can2_Version>>5, ds.can2_Version&0x1F);
+    rt_kprintf("+  eth  : V%d.%d  \r\n", ds.etu_Version>>5, ds.etu_Version&0x1F);
     
     rt_kprintf("+  MCU A: V%d.%d  \r\n", ds.MCU[0].armVersion >> 5, ds.MCU[0].armVersion & 0x1F);
     rt_kprintf("+  MCU B: V%d.%d  \r\n", ds.MCU[1].armVersion >> 5, ds.MCU[1].armVersion & 0x1F);
@@ -273,7 +274,34 @@ void lcu_version(void)
 }
 
 
-#include "finsh.h"
-FINSH_FUNCTION_EXPORT(clockSour,show clock source)
-FINSH_FUNCTION_EXPORT(lcu_version,show lcu board version)
+void list_flt(void)
+{
+    
+    
+}
 
+
+void list_dio(void)
+{
+    uint32_t i;
+
+    for(i = 0; i < 27; i++)
+    {
+        rt_kprintf("+ DIO%2d: %2x, %2x, %2x, %2x, %2x, %2x, %2x, %2x\r\n", (i + 1), 
+        ds.DIO[i].in[0],
+        ds.DIO[i].in[1],
+        ds.DIO[i].ou,
+        ds.DIO[i].fb[0],
+        ds.DIO[i].fb[1],
+        ds.DIO[i].inFlt[0],
+        ds.DIO[i].inFlt[1],
+        ds.DIO[i].ouFlt);
+    }
+}
+
+
+#include "finsh.h"
+FINSH_FUNCTION_EXPORT(clockSour, show clock source)
+FINSH_FUNCTION_EXPORT(lcu_version, show lcu board version)
+FINSH_FUNCTION_EXPORT(list_flt, show lcu fault)
+FINSH_FUNCTION_EXPORT(list_dio, show lcu dio)

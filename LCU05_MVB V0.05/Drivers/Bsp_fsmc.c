@@ -130,7 +130,7 @@ void Bsp_fsmc_init(void)
 
 	/*--------------------------------  MVB NORSRAM4 ---------------------------------*/
 	p.FSMC_AddressSetupTime      = 0x0f;
-	p.FSMC_AddressHoldTime       = 0x01;
+	p.FSMC_AddressHoldTime       = 0x0f;//0x01; changed by fusunbing
 	p.FSMC_DataSetupTime         = 0x1f;
 	p.FSMC_BusTurnAroundDuration = 0;
 	p.FSMC_CLKDivision           = 0;
@@ -139,7 +139,7 @@ void Bsp_fsmc_init(void)
 
 	pw.FSMC_AddressSetupTime      = 0x0f;
 	pw.FSMC_AddressHoldTime       = 0x01;
-	pw.FSMC_DataSetupTime         = 0x1f;   
+	pw.FSMC_DataSetupTime         = 0x3F;//0x1f;
 	pw.FSMC_BusTurnAroundDuration = 0;
 	pw.FSMC_CLKDivision           = 0;
 	pw.FSMC_DataLatency           = 0;

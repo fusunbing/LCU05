@@ -61,14 +61,32 @@ typedef union
 
 typedef struct
 {
-    uint8_t A_DC5V          :1;     //A组电源故障
-    uint8_t A_DC110V        :1;     //A组供电故障
-    uint8_t B_DC5V          :1;     //B组电源故障
-    uint8_t B_DC110V        :1;     //B组供电故障
-    uint8_t C_DC5V          :1;     //C组电源故障
-    uint8_t C_DC110V        :1;     //C组供电故障
+    uint8_t dc110v_a        :1;     //A组供电故障    
+    uint8_t dc5v_a          :1;     //A组电源故障
+    uint8_t dc110v_b        :1;     //B组供电故障
+    uint8_t dc5v_b          :1;     //B组电源故障
+    uint8_t dc110v_c        :1;     //C组供电故障    
+    uint8_t dc5v_c          :1;     //C组电源故障
     uint8_t res             :2;
 }BOARD_PWR_FLT, *PBOARD_PWR_FLT;
+
+
+typedef struct
+{
+    uint8_t ser             :1;     //轻微故障
+    uint8_t med             :1;     //中等故障
+    uint8_t sli             :1;     //严重故障
+    uint8_t res1            :5;
+}LCU_FLT_LEVEL, *PLCU_FLT_LEVEL;
+
+
+typedef struct
+{
+    uint8_t mcuVer          :1;     //MCU板底层软件版本号
+    uint8_t kwVer           :1;     //MCU板KW软件版本号
+    uint8_t dioVer          :1;     //DIO板底层软件版本号
+    uint8_t res             :5;
+}LCU_VER_FLT, *PLCU_VER_FLT;
 
 
 typedef struct
@@ -77,17 +95,20 @@ typedef struct
     uint8_t can1            :1;     //MVB板CAN1故障
     uint8_t can2            :1;     //MVB板CAN2故障
     uint8_t lost            :1;     //MVB板丢失
-    uint8_t res             :4;        
+    uint8_t res             :4;
 }BOARD_MVB_FLT, *PBOARD_MVB_FLT;
 
 
 typedef struct
 {
-    uint8_t ext_can1        :1;     //外网CAN1故障
-    uint8_t ext_can2        :1;     //外网CAN2故障
+    uint8_t board           :1;     //CAN板故障
     uint8_t can1            :1;     //内网CAN1故障
     uint8_t can2            :1;     //内网CAN2故障
-    uint8_t res             :4;
+    uint8_t lost            :1;     //CAN板丢失
+    
+    uint8_t ext_can1        :1;     //外网CAN1故障
+    uint8_t ext_can2        :1;     //外网CAN2故障
+    uint8_t res             :2;
 }BOARD_CAN_FLT, *PBOARD_CAN_FLT;
 
 
@@ -97,6 +118,7 @@ typedef struct
     uint8_t can1            :1;     //ETH板CAN2故障
     uint8_t can2            :1;     //ETH板CAN2故障
     uint8_t lost            :1;     //ETU板丢失
+    uint8_t eth             :1;     //ETU板以太网通讯故障
     uint8_t res             :4;
 }BOARD_ETU_FLT, *PBOARD_ETU_FLT;
 
@@ -129,30 +151,39 @@ typedef struct
 }MVB_DATA_STU, *PMVB_DATA_STU;
 
 
+typedef struct
+{
+    uint8_t date[128];
+}CAN_DATA_STU, *PCAN_DATA_STU;
+
+
 typedef struct 
 {
     uint16_t lifeSignal; //生命信号
     
+    LCU_FLT_LEVEL fltLevel;
+    LCU_VER_FLT   verFlt;
+    
     BOARD_PWR_FLT pwr;
-    BOARD_CAN_FLT can;    
+    BOARD_CAN_FLT can;
     BOARD_MVB_FLT mvb;
     BOARD_ETU_FLT etu;
     
     BOARD_MCU_FLT mcu[3];
     
-    BOARD_DIO_FLT dio[27];
+    BOARD_DIO_FLT dio[IO_BOARD_MAX];
     
     uint8_t inBuf[14];
     uint8_t ouBuf[8];
     
-    uint16_t res;
-}CAN_DATA_STU, *PCAN_DATA_STU;
+    uint32_t res;
+}LCU_STS_STU, *PLCU_STS_STU;
 
 
 typedef struct
 {
     MVB_DATA_STU    mvb_port[32];   //MVB端口数据 %MB3.1000-%MB3.2023
-    CAN_DATA_STU    lcu[16];        //各车LCU状态数据 %MB3.2024-%MB3.3559
+    CAN_DATA_STU    lcu[8];        //各车LCU状态数据 %MB3.2024-%MB3.2047
     
     uint16_t lifeSign;
     uint8_t year;
@@ -161,10 +192,15 @@ typedef struct
     uint8_t hour;
     uint8_t min;
     uint8_t sec;
+    uint8_t res1[24];
     
     uint8_t carID;
     uint8_t kwVer;
+    uint8_t res2[30];
     
+    LCU_STS_STU me;
+    
+    uint8_t res3[1024];
 }KW_SHM_STU, *PKW_SHM_STU;
 
 typedef struct 
@@ -250,6 +286,11 @@ typedef struct
     uint8_t can2_Version;
     uint8_t can2_CarID;
     uint8_t can2_ExtCan;
+    
+    uint8_t etu_Lifesign;
+    uint8_t etu_Version;
+    uint8_t etu_CarID;
+    uint8_t etu_res;
 
 }DS_STU,*PDS_STU;
 

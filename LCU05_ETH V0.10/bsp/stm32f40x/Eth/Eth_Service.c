@@ -78,13 +78,13 @@ static void  EthService_Task(void* parameter);
 //                      External functions 
 //---------------------------------------------------------------------------
 extern void lwip_sys_init(void);
-static void  EthService_CreateThread(void);
+static void EthService_CreateThread(void);
 static void EthService_Init(void);
-static void  EthService_PDInit(void);
-static void  EthService_PtuTask(void* parameter);
-static void  EthService_CreatePTUSrv(void);
-static void  EthService_ModBusTask(void* parameter);
-static void  EthService_CreateModBusSrv(void);
+static void EthService_PDInit(void);
+static void EthService_PtuTask(void* parameter);
+static void EthService_CreatePTUSrv(void);
+static void EthService_ModBusTask(void* parameter);
+static void EthService_CreateModBusSrv(void);
 
 
 /*******************************************************************************
@@ -222,7 +222,8 @@ static void  EthService_Task(void* parameter)
 				break;
 
 			case ETHSERV_ST_SERVECREAT:
-				        SetEthIP(ds.boxID);
+                
+                SetEthIP(ds.carID);
                 EthService_CreatePTUSrv();
                 rt_thread_delay(1000);
                 //EthService_CreateModBusSrv();

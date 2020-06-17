@@ -34,7 +34,7 @@ static void mvb_thread_entry(void* parameter)
 		{
 			case MVB_STS_CONFIG:				
                 ret &= MVB_Device_Init();
-                ret &= mvbPort_config(0);
+                ret &= mvbPort_config(ds.carID);
             
                 if(ret == 0)
                 {
@@ -43,8 +43,8 @@ static void mvb_thread_entry(void* parameter)
                 mvb_sts = MVB_STS_NOMAL;
 				break;
 			case MVB_STS_NOMAL:
-                mvbPort_Read(0);
-                mvbPort_write(0);				
+                mvbPort_Read(ds.carID);
+                mvbPort_write(ds.carID);
 				break;			
 			case MVB_STS_ERROR:
 				System_Led_SetMode(LED_FLT, MODE_FLASH_SLOW);
@@ -55,7 +55,7 @@ static void mvb_thread_entry(void* parameter)
 		}
 		
 		
-		rt_thread_delay(16);
+		rt_thread_delay(128);
     }
 }
 

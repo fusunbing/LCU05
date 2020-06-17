@@ -35,9 +35,29 @@ void userApp_init(void)
         id.Bits.bit1 = GetPin(BOX_ID2);
         id.Bits.bit2 = GetPin(BOX_ID3);
         id.Bits.bit3 = GetPin(BOX_ID4);
-        ds.carID = id.value; 
+        
+        switch(id.value)
+        {
+            case 3:
+                ds.carID = 0; 
+                break;
+            case 5:
+                ds.carID = 1; 
+                break;
+            case 6:
+                ds.carID = 2; 
+                break;
+            case 9:
+                ds.carID = 3; 
+                break;
+            default:
+                ds.carID = 0xFF; 
+                break;
+        }
     }while(ds.carID > 3);
-
+    
+    ds.boardTypeID = BOARD_TYPE_ID_CAN;
+    ds.version = SOFTWARE_VERSION;
 }
 
 

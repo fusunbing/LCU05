@@ -5,116 +5,58 @@
 DS_STU ds = {0};
 
 
-void Board_Information_Init(void);
-uint8_t GetSlotID(void);
-uint8_t GetBordTypeID(void);
-uint8_t GetBoxID(void);
-static void Delay_tick(uint8_t cnt);
-
-
 void Board_Information_Init(void)
 {
-    //系统slot ID、110V检测、5V检测gpio初始化
+    BYTE_TO_BIT id = {0};
+    
     stmPinsInit();
-	
-	  //降低热插拔读错板卡信息的概率
-		do
-		{
-        ds.slotID = GetSlotID();
-//			rt_kprintf("%d",ds.slotID);
-		}while(ds.slotID != ETH_SLOT_ID);
-		
-//		ds.boardType = GetBordTypeID();
-
-		ds.boxID = GetBoxID();
-
-//		if(10 != ds.boardType)
-//		    while(1);
-}
-
-
-uint8_t GetSlotID(void)
-{
-	  uint32_t i;
-	  uint8_t temp = 0;
-	  BYTE_TO_BIT id = {0};
     
-	  do
-		{
-	      for(i=0; i<100; i++)
-		    {
-            id.Bits.bit0 = GetPin(IOSLOT_ID1);
-            id.Bits.bit1 = GetPin(IOSLOT_ID2);
-            id.Bits.bit2 = GetPin(IOSLOT_ID3);
-            id.Bits.bit3 = GetPin(IOSLOT_ID4);
-//            id.Bits.bit4 = GetPin(IOSLOT_ID5);
-//	          id.Bits.bit5 = GetPin(IOSLOT_ID6);
-			      temp = temp ^ id.value;
-            Delay_tick(100);
-		    }
-	  }while(temp != 0);
-
-    return id.value;  
-}
-
-uint8_t GetBordTypeID(void)
-{
-	  uint32_t i;
-    uint8_t id[4];
-	  uint8_t bordtypeid = 0;
-	  uint8_t temp = 0;
+//    do
+//    {
+//        id.Bits.bit0 = GetPin(BOARD_TYPE_ID1);
+//        id.Bits.bit1 = GetPin(BOARD_TYPE_ID2);
+//        id.Bits.bit2 = GetPin(BOARD_TYPE_ID3);
+//        id.Bits.bit3 = GetPin(BOARD_TYPE_ID4);
+//        ds.boardType = id.value;
+//    }while(ds.boardType != BOARD_TYPE_ID_ETU);
     
-	  do
-		{
-	      for(i=0; i<100; i++)
-		    {
-            id[0] = GetPin(IDD0);
-            id[1] = GetPin(IDD0);
-            id[2] = GetPin(IDD0);
-            id[3] = GetPin(IDD0);
-			      bordtypeid = ((id[3]<<3) + (id[2]<<2) + (id[1]<<1) + id[0]);
-			      temp = temp ^  bordtypeid;
-					  Delay_tick(100);
-		    }
-	  }while(temp != 0);
-		
-    return bordtypeid; 
-}
-
-
-uint8_t GetBoxID(void)
-{
-	  uint32_t i;
-    uint8_t id[4];
-	  uint8_t boxid = 0;
-	  uint8_t temp = 0;
     
-	  do
-		{
-	      for(i=0; i<100; i++)
-		    {
-            id[0] = GetPin(BOX_ID0);
-            id[1] = GetPin(BOX_ID1);
-            id[2] = GetPin(BOX_ID2);
-            id[3] = GetPin(BOX_ID3);
-			      boxid = ((id[3]<<3) + (id[2]<<2) + (id[1]<<1) + id[0]);
-			      temp = temp ^  boxid;
-					  Delay_tick(100);
-		    }
-	  }while(temp != 0);
-		
-    return boxid; 
+    do
+    {
+        id.Bits.bit0 = GetPin(SLOT_ID1);
+        id.Bits.bit1 = GetPin(SLOT_ID2);
+        id.Bits.bit2 = GetPin(SLOT_ID3);
+        id.Bits.bit3 = GetPin(SLOT_ID4);
+        ds.slotID = id.value;
+    }while(ds.slotID != SLOT_ID_ETU);
+    
+    do
+    {
+        id.Bits.bit0 = GetPin(BOX_ID1);
+        id.Bits.bit1 = GetPin(BOX_ID2);
+        id.Bits.bit2 = GetPin(BOX_ID3);
+        id.Bits.bit3 = GetPin(BOX_ID4); 
+
+        switch(id.value)
+        {
+            case 3:
+                ds.carID = 0; 
+                break;
+            case 5:
+                ds.carID = 1; 
+                break;
+            case 6:
+                ds.carID = 2; 
+                break;
+            case 9:
+                ds.carID = 3; 
+                break;
+            default:
+                ds.carID = 0xFF; 
+                break;  
+        }
+    }while(ds.carID > 3);
+    
+    ds.version = 2;
 }
-
-
-static void Delay_tick(uint8_t cnt)
-{
-	  uint8_t i; 
-	  
-    for(i=0; i<cnt; i++)
-		{
-		    ;
-		}
-}
-
 

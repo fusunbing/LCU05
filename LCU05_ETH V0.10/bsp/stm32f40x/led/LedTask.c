@@ -15,8 +15,8 @@ const uint8_t _LED_OFF[LED_TIME_COUNT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
                                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };  //灯模式，常灭（周期）
 const uint8_t _LED_FLASH_SLOW[LED_TIME_COUNT] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
                                                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };  //灯模式，闪烁（周期1Hz）
-const uint8_t _LED_FLASH_FAST[LED_TIME_COUNT] = { 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0,
-                                                 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0 };
+const uint8_t _LED_FLASH_FAST[LED_TIME_COUNT] = { 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0,
+                                                  1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0 };
 
 
 const uint8_t* p_led_act;
@@ -222,11 +222,11 @@ static void LedTask_Process(void* parameter)
 
     for (;;)
     {
-	      IWDG_ReloadCounter(); /* 恢复内部独立看门狗 2019-4-17*/
-		    HwWDog_Feed();
+        IWDG_ReloadCounter(); /* 恢复内部独立看门狗 2019-4-17*/
+        HwWDog_Feed();
 
         System_Led_Logic();
-		    rt_thread_delay(50);
+        rt_thread_delay(40);
     }
 }
 

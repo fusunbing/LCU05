@@ -36,19 +36,38 @@ void userApp_init(void)
             id.Bits.bit3 = GetPin(BOX_ID4);
         }
         
-        ds.carID = (uint8_t)id.value; 
-        
-    }while(0);//(ds.boxID > 5);
+        switch(id.value)
+        {
+            case 3:
+                ds.carID = 0; 
+                break;
+            case 5:
+                ds.carID = 1; 
+                break;
+            case 6:
+                ds.carID = 2; 
+                break;
+            case 9:
+                ds.carID = 3; 
+                break;
+            default:
+                ds.carID = 0xFF; 
+                break;  
+        }
+    }while(ds.carID > 3);
 	
-    do
-    {
-        id.Bits.bit0 = GetPin(BOARD_TYPE_ID1);
-        id.Bits.bit1 = GetPin(BOARD_TYPE_ID2);
-        id.Bits.bit2 = GetPin(BOARD_TYPE_ID3);
-        id.Bits.bit3 = GetPin(BOARD_TYPE_ID4);
+//    do
+//    {
+//        id.Bits.bit0 = GetPin(BOARD_TYPE_ID1);
+//        id.Bits.bit1 = GetPin(BOARD_TYPE_ID2);
+//        id.Bits.bit2 = GetPin(BOARD_TYPE_ID3);
+//        id.Bits.bit3 = GetPin(BOARD_TYPE_ID4);
 
-        ds.boardType = (uint8_t)id.value; 
-    }while(ds.boardType != BOARD_TYPE_ID_MVB);
+//        ds.boardType = (uint8_t)id.value; 
+//    }while(ds.boardType != BOARD_TYPE_ID_MVB);
+    
+    
+    ds.boardType = BOARD_TYPE_ID_MVB;
     
     //Èí¼þ°æ±¾ºÅ
     ds.version = 5;

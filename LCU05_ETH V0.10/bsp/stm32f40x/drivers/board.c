@@ -25,6 +25,8 @@
 #include "version.h"
 #include "Bsp_bakram.h"
 #include "common.h"
+#include "LedTask.h"
+
 
 DS_BSP_INFO BspInfo = {0};
 
@@ -197,7 +199,7 @@ void rt_hw_board_init()
     
 	System_Led_Init();
     
-	//Board_Information_Init();
+	Board_Information_Init();
 	 rt_kprintf("\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n");
 	//-----------------------------------------------------------------------------------------
 	// MCU信息
@@ -302,17 +304,17 @@ void rt_hw_board_init()
 	rt_kprintf("\r\nRTC INFO: RTC Module Init success!");
 	
 	// TIM 模块初始化
-//	if(System_hw_timerInit() == -1)
-//	{
-//      while(1)
-//      {
-//          rt_kprintf("\r\n+ TIM ERR: Can not create TIM_Sem!\r\n");
-//      }
-//	}
-//	else
-//	{
-//		  rt_kprintf("\r\n+ TIM INFO: Init success!\r\n");
-//	}
+	if(System_hw_timerInit() == -1)
+	{
+      while(1)
+      {
+          rt_kprintf("\r\n+ TIM ERR: Can not create TIM_Sem!\r\n");
+      }
+	}
+	else
+	{
+		  rt_kprintf("\r\n+ TIM INFO: Init success!\r\n");
+	}
 }
 
 

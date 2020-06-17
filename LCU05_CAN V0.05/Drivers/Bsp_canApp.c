@@ -28,16 +28,16 @@ static void can1_rx_handle(CAN_RX_DATA_RAM * pDate)
     CanNode_Clear(1, info.id.src);
     CanNode_Clear(1, ds.slotID);
     
-    if(info.id.funID >= 0x80 || info.id.funID == CAN_FUN_REMOTE_IN || info.id.funID == CAN_FUN_MVB_RTC)
+    if(info.id.funID >= 0x80 || info.id.funID == CAN_FUN_MVB_RTC)
     {
-        if(info.id.dst == SLOT_ID_CAN || info.id.dst == CAN_ADDR_NET_GROUP)
+        if(info.id.dst == CAN_ADDR_BROADCAST && pDate->rxMsg.DLC == 8)
         {
             info.id.src = ds.carID;  //对外地址
             info.id.dst = CAN_ADDR_BROADCAST; //广播帧
             
-            if(info.id.funID == CAN_FUN_REMOTE_IN)
+            if(info.id.funID == CAN_FUN_MVB_RTC)
             {
-                info.id.funID = ds.carID * 16 + 0x80;
+                info.id.funID = ds.carID * 16 + 0x89;
             }
             
             txMsg.ExtId = info.value;
@@ -84,7 +84,7 @@ static void can1_send_lifesign(void)
     
     info.id.funID = CAN_FUN_POWER_ON;
     info.id.src = ds.slotID;
-    info.id.dst = CAN_ADDR_MCU_GROUP;
+    info.id.dst = CAN_ADDR_BROADCAST;
     info.id.pri = CAN_PRI_M;
 
     txMsg.ExtId = info.value;

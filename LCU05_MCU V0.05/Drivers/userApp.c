@@ -94,16 +94,32 @@ void userApp_init(void)
             id.Bits.bit3 = GetPin(BOX_ID4);
         }
         
-        ds.carID = (uint8_t)id.value; 
+        switch(id.value)
+        {
+            case 3:
+                ds.carID = 0; 
+                break;
+            case 5:
+                ds.carID = 1; 
+                break;
+            case 6:
+                ds.carID = 2; 
+                break;
+            case 9:
+                ds.carID = 3; 
+                break;
+            default:
+                ds.carID = 0xFF; 
+                break;  
+        }
     }while(ds.carID > 3);
-    
-    
+
     pKW_SHM->carID = ds.carID;
 }
 
 
 //输入通道三取二算法
-static void two_out_of_three(void)
+static void input_2oo3(void)
 {
     uint32_t i;
     uint32_t group;
@@ -120,20 +136,30 @@ static void two_out_of_three(void)
             ds.Bits_inBuf[offset + i] = ((ds.DIO[index].Bits_in[i] + ds.DIO[index + 1].Bits_in[i] + ds.DIO[index + 2].Bits_in[i]) >= 2) ? 1 : 0;
         }
     }
+}
+
+
+static void remoteIn_2oo3(void)
+{
+    uint32_t i;
+    uint32_t offset;
     
-    rt_memcpy(ds.MCU[ds.slotID - SLOT_ID_MCU_A].remote_in, &ds.inBuf[ds.carID * 8 + 64], 8);
-    
-    index = 512 + 64 * ds.carID; //计算车辆列车线信号偏移
+    rt_memcpy(ds.MCU[ds.slotID - SLOT_ID_MCU_A].remote_in, &ds.ouBuf[64], 8);
+
+    offset = 512 + 64 * ds.carID; //计算车辆列车线信号偏移
     
     for(i = 0; i < 64; i++)
     {
-        ds.Bits_inBuf[index + i] = ((ds.MCU[0].Bits_remote_in[i] + ds.MCU[1].Bits_remote_in[i] + ds.MCU[2].Bits_remote_in[i]) >= 2) ? 1 : 0;
+        ds.Bits_inBuf[offset + i] = ((ds.MCU[0].Bits_remote_in[i] + ds.MCU[1].Bits_remote_in[i] + ds.MCU[2].Bits_remote_in[i]) >= 2) ? 1 : 0;
     }
 }
 
+
 void Input_KW(uint8_t *buf)
 {
-    two_out_of_three();
+    input_2oo3();
+    remoteIn_2oo3();
+    
     rt_memcpy(buf, ds.inBuf, 128);
 }
 
@@ -144,6 +170,12 @@ void KW_Output(uint8_t *buf)
     {
         rt_memcpy(ds.ouBuf, buf, 8);
         can_send_output();
+    }
+    
+    if(rt_memcmp(&ds.ouBuf[64], &buf[64], 8) != 0)
+    {
+        rt_memcpy(&ds.ouBuf[64], &buf[64], 8);
+        can_send_remoteIn();
     }
 }
 

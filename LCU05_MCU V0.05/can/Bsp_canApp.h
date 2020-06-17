@@ -63,6 +63,7 @@ void can_rx_handle_register(void);
 void can_rx_serve(CanRxMsg* pMsg);
 void can_tx_serve(void);
 void can_send_output(void);
+void can_send_remoteIn(void);
 
 
 #ifdef __cplusplus

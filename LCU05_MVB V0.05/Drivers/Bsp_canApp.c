@@ -24,11 +24,16 @@ static void can_rx_handle(CAN_RX_DATA_RAM * pDate)
             carID = (info.id.funID - 0x80) / 16;
             offset = info.id.funID % 16;
             
-            if(offset > 0 && offset < 9)
+            if(offset > 0 && offset < 5)
             {
-                carID = carID * 2 + offset / 4 + 3;
-                offset = (offset % 4 - 1) * 8;
-                
+                carID = carID + 2;
+                offset = (offset - 1) * 8;                
+                rt_memcpy(&ds.mvb_port[carID].data[offset], pDate->rxMsg.Data, pDate->rxMsg.DLC);
+            }
+            else if(offset > 4 && offset < 9)
+            {
+                carID = carID + 6;
+                offset = (offset - 5) * 8;
                 rt_memcpy(&ds.mvb_port[carID].data[offset], pDate->rxMsg.Data, pDate->rxMsg.DLC);
             }
         }
@@ -238,7 +243,7 @@ static void canSend_PowerOn(void)
 
 void canApp_serve(void)
 {
-    if(rt_tick_get() < 2000)
+    if(rt_tick_get() < 3000)
     {
         canSend_PowerOn();
     }

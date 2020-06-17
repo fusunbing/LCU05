@@ -36,54 +36,308 @@ static void canNodeFlt_detect(void)
         ds.DIO[i].flt.can2 = (Get_CanSts(2, (SLOT_ID_IO_MIN + i)) == RT_ERROR) ? RT_ERROR : RT_EOK;        
         ds.DIO[i].flt.lost = (ds.DIO[i].flt.can1 == RT_ERROR && ds.DIO[i].flt.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
         
+        if(ds.DIO[i].inFlt[0] != 0 || ds.DIO[i].inFlt[1] != 0)
+        {
+            ds.DIO[i].flt.in = RT_ERROR;
+        }
+        else
+        {
+            ds.DIO[i].flt.in = RT_EOK;
+        }
+        
+        if(ds.DIO[i].ouFlt != 0)
+        {
+            ds.DIO[i].flt.in = RT_ERROR;
+        }
+        else
+        {
+            ds.DIO[i].flt.in = RT_EOK;
+        }
+        
+        if(ds.DIO[i].flt.can1 != RT_EOK
+            || ds.DIO[i].flt.can2 != RT_EOK
+            || ds.DIO[i].flt.lost != RT_EOK
+            || ds.DIO[i].flt.in != RT_EOK
+            || ds.DIO[i].flt.ou != RT_EOK)
+        {
+            ds.DIO[i].flt.board = RT_ERROR;
+        }
+        else
+        {
+            ds.DIO[i].flt.board = RT_EOK;
+        }        
+        
+        
         if(ds.DIO[i].flt.lost == RT_ERROR)
         {
             rt_memset(ds.DIO[i].in, 0, 8);
         }
     }
 
-    ds.MCU[0].flt.can1 = (Get_CanSts(1, SLOT_ID_MCU_A) == RT_ERROR) ? RT_ERROR : RT_EOK;
-    ds.MCU[0].flt.can2 = (Get_CanSts(2, SLOT_ID_MCU_A) == RT_ERROR) ? RT_ERROR : RT_EOK;
-    ds.MCU[0].flt.lost = (ds.MCU[0].flt.can1 == RT_ERROR && ds.MCU[0].flt.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+    for(i = 0; i < 3; i++)
+    {
+        ds.MCU[i].flt.can1 = (Get_CanSts(1, (SLOT_ID_MCU_A + i)) == RT_ERROR) ? RT_ERROR : RT_EOK;
+        ds.MCU[i].flt.can2 = (Get_CanSts(2, (SLOT_ID_MCU_A + i)) == RT_ERROR) ? RT_ERROR : RT_EOK;
+        ds.MCU[i].flt.lost = (ds.MCU[i].flt.can1 == RT_ERROR && ds.MCU[i].flt.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+        
+        if(ds.MCU[i].flt.can1 != RT_EOK
+            || ds.MCU[i].flt.can2 != RT_EOK
+            || ds.MCU[i].flt.lost != RT_EOK)
+        {
+            ds.MCU[i].flt.board = RT_ERROR;
+        }
+        else
+        {
+            ds.MCU[i].flt.board = RT_EOK;
+        }
+        
+        if(ds.MCU[i].flt.lost == RT_ERROR)
+        {
+            rt_memset(ds.MCU[i].remote_in, 0, 8);
+            rt_memset(ds.MCU[i].ou, 0, 8);
+        }
+    }
     
-    ds.MCU[1].flt.can1 = (Get_CanSts(1, SLOT_ID_MCU_B) == RT_ERROR) ? RT_ERROR : RT_EOK;
-    ds.MCU[1].flt.can2 = (Get_CanSts(2, SLOT_ID_MCU_B) == RT_ERROR) ? RT_ERROR : RT_EOK;
-    ds.MCU[1].flt.lost = (ds.MCU[0].flt.can1 == RT_ERROR && ds.MCU[1].flt.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+    for(i = 0; i < IO_BOARD_MAX; i++)
+    {
+        pKW_SHM->me.dio[i].board = ds.DIO[i].flt.board;        
+        pKW_SHM->me.dio[i].can1 = ds.DIO[i].flt.can1;
+        pKW_SHM->me.dio[i].can2 = ds.DIO[i].flt.can2;
+        pKW_SHM->me.dio[i].in = ds.DIO[i].flt.in;
+        pKW_SHM->me.dio[i].ou = ds.DIO[i].flt.ou;        
+        pKW_SHM->me.dio[i].lost = ds.DIO[i].flt.lost;
+    }
     
-    ds.MCU[2].flt.can1 = (Get_CanSts(1, SLOT_ID_MCU_C) == RT_ERROR) ? RT_ERROR : RT_EOK;
-    ds.MCU[2].flt.can2 = (Get_CanSts(2, SLOT_ID_MCU_C) == RT_ERROR) ? RT_ERROR : RT_EOK;
-    ds.MCU[2].flt.lost = (ds.MCU[2].flt.can1 == RT_ERROR && ds.MCU[2].flt.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+    for(i = 0; i < 3; i++)
+    {
+        pKW_SHM->me.mcu[i].board = ds.MCU[i].flt.board;
+        pKW_SHM->me.mcu[i].can1 = ds.MCU[i].flt.can1;
+        pKW_SHM->me.mcu[i].can2 = ds.MCU[i].flt.can2;   
+        pKW_SHM->me.mcu[i].lost = ds.MCU[i].flt.lost;
+    }
+    
+    pKW_SHM->me.can.can1 =  (Get_CanSts(1, SLOT_ID_CAN) == RT_ERROR) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.can.can2 =  (Get_CanSts(2, SLOT_ID_CAN) == RT_ERROR) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.can.lost = (pKW_SHM->me.can.can1 == RT_ERROR && pKW_SHM->me.can.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.can.ext_can1 = ds.can1_ExtCan;
+    pKW_SHM->me.can.ext_can2 = ds.can2_ExtCan;
+    
+    if(pKW_SHM->me.can.can1 != RT_EOK
+        || pKW_SHM->me.can.can2 != RT_EOK
+        || pKW_SHM->me.can.lost != RT_EOK
+        || pKW_SHM->me.can.ext_can1 != RT_EOK
+        || pKW_SHM->me.can.ext_can2 != RT_EOK)
+    {
+        pKW_SHM->me.can.board = RT_ERROR;
+    }
+    else
+    {
+        pKW_SHM->me.can.board = RT_EOK;
+    }
+    
+    pKW_SHM->me.mvb.can1 =  (Get_CanSts(1, SLOT_ID_MVB) == RT_ERROR) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.mvb.can2 =  (Get_CanSts(2, SLOT_ID_MVB) == RT_ERROR) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.mvb.lost = (pKW_SHM->me.mvb.can1 == RT_ERROR && pKW_SHM->me.mvb.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+    
+    if(pKW_SHM->me.mvb.can1 != RT_EOK
+        || pKW_SHM->me.mvb.can2 != RT_EOK
+        || pKW_SHM->me.mvb.lost != RT_EOK)
+    {
+        pKW_SHM->me.mvb.board = RT_ERROR;
+    }
+    else
+    {
+        pKW_SHM->me.mvb.board = RT_EOK;
+    }
+    
+    pKW_SHM->me.etu.can1 =  (Get_CanSts(1, SLOT_ID_ETU) == RT_ERROR) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.etu.can2 =  (Get_CanSts(2, SLOT_ID_ETU) == RT_ERROR) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.etu.lost = (pKW_SHM->me.etu.can1 == RT_ERROR && pKW_SHM->me.etu.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+    
+    if(pKW_SHM->me.etu.can1 != RT_EOK
+        || pKW_SHM->me.etu.can2 != RT_EOK
+        || pKW_SHM->me.etu.lost != RT_EOK)
+    {
+        pKW_SHM->me.etu.board = RT_ERROR;
+    }
+    else
+    {
+        pKW_SHM->me.etu.board = RT_EOK;
+    }
 }
 
 
 static void powerFlt_detect(void)
 {
-    static uint32_t dc110v_cnt;
-    static uint32_t dc5v_cnt;
-    
-    ds.dc5v = GetPin(DC5V_DETECT);
+    static uint32_t dc110v_a_cnt;
+    static uint32_t dc5v_a_cnt;
+    static uint32_t dc110v_b_cnt;
+    static uint32_t dc5v_b_cnt;
+    static uint32_t dc110v_c_cnt;
+    static uint32_t dc5v_c_cnt;
+
     ds.dc110v = GetPin(DC110V_DETECT);
+    ds.dc5v = GetPin(DC5V_DETECT);
     
-    if(ds.dc110v == 0)
+    switch(ds.slotID)
     {
-        dc110v_cnt++;
+        case SLOT_ID_MCU_A:
+            ds.MCU[0].dc110v = ds.dc110v;
+            ds.MCU[0].dc5v = ds.dc5v;
+            break;
+        case SLOT_ID_MCU_B:
+            ds.MCU[1].dc110v = ds.dc110v;
+            ds.MCU[1].dc5v = ds.dc5v;
+            break;
+        case SLOT_ID_MCU_C:
+            ds.MCU[2].dc110v = ds.dc110v;
+            ds.MCU[2].dc5v = ds.dc5v;
+            break;
+        default:            
+            break;
+    }
+    
+    if(ds.MCU[0].dc110v == 0)
+    {
+        dc110v_a_cnt++;
     }
     else
     {
-        dc110v_cnt = 0;
+        dc110v_a_cnt = 0;
     }    
     
-    if(ds.dc5v == 0 && ds.dc110v == 1)
+    if(ds.MCU[0].dc5v == 0 && ds.MCU[0].dc110v == 1)
     {
-        dc5v_cnt++;
+        dc5v_a_cnt++;
     }
     else
     {
-        dc5v_cnt = 0;
+        dc5v_a_cnt = 0;
+    }
+
+    if(ds.MCU[1].dc110v == 0)
+    {
+        dc110v_b_cnt++;
+    }
+    else
+    {
+        dc110v_b_cnt = 0;
+    }    
+    
+    if(ds.MCU[1].dc5v == 0 && ds.MCU[1].dc110v == 1)
+    {
+        dc5v_b_cnt++;
+    }
+    else
+    {
+        dc5v_b_cnt = 0;
+    }
+
+    if(ds.MCU[2].dc110v == 0)
+    {
+        dc110v_c_cnt++;
+    }
+    else
+    {
+        dc110v_c_cnt = 0;
+    }    
+    
+    if(ds.MCU[2].dc5v == 0 && ds.MCU[2].dc110v == 1)
+    {
+        dc5v_c_cnt++;
+    }
+    else
+    {
+        dc5v_c_cnt = 0;
     }
     
-    ds.dc110v_flt = (dc110v_cnt > 5) ? RT_ERROR : RT_EOK;
-    ds.dc5v_flt = (dc5v_cnt > 5) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc110v_a = (dc110v_a_cnt > 10) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc5v_a = (dc5v_a_cnt > 10) ? RT_ERROR : RT_EOK;
+    
+    pKW_SHM->me.pwr.dc110v_b = (dc110v_b_cnt > 10) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc5v_b = (dc5v_b_cnt > 10) ? RT_ERROR : RT_EOK;
+    
+    pKW_SHM->me.pwr.dc110v_c = (dc110v_c_cnt > 10) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc5v_c = (dc5v_c_cnt > 10) ? RT_ERROR : RT_EOK;
+}
+
+
+
+static rt_err_t isVersionValid(void)
+{
+    rt_err_t ret = RT_ERROR;
+    
+    if(ds.carID == 0 || ds.carID == 3)
+    {
+        if(ds.mvb_Version != 0 && ds.can1_Version != 0 && ds.can2_Version != 0 && ds.etu_Version != 0
+            && ds.MCU[0].armVersion != 0 && ds.MCU[1].armVersion != 0 && ds.MCU[2].armVersion != 0
+            && ds.MCU[0].kwVersion != 0 && ds.MCU[1].kwVersion != 0 && ds.MCU[2].kwVersion != 0
+            && ds.DIO[0].version != 0 && ds.DIO[1].version != 0 && ds.DIO[2].version != 0
+            && ds.DIO[3].version != 0 && ds.DIO[4].version != 0 && ds.DIO[5].version != 0
+            && ds.DIO[6].version != 0 && ds.DIO[7].version != 0 && ds.DIO[8].version != 0
+            && ds.DIO[9].version != 0 && ds.DIO[10].version != 0 && ds.DIO[11].version != 0
+            && ds.DIO[12].version != 0 && ds.DIO[13].version != 0 && ds.DIO[14].version != 0
+            && ds.DIO[15].version != 0 && ds.DIO[16].version != 0 && ds.DIO[17].version != 0
+            && ds.DIO[18].version != 0 && ds.DIO[19].version != 0 && ds.DIO[20].version != 0
+            && ds.DIO[21].version != 0 && ds.DIO[22].version != 0 && ds.DIO[23].version != 0
+            && ds.DIO[24].version != 0 && ds.DIO[25].version != 0 && ds.DIO[26].version != 0)
+        {
+            ret = RT_EOK;
+        } 
+    }
+    else if(ds.carID == 1 || ds.carID == 2)
+    {
+        if(ds.can1_Version != 0 && ds.can2_Version != 0 && ds.etu_Version != 0
+            && ds.MCU[0].armVersion != 0 && ds.MCU[1].armVersion != 0 && ds.MCU[2].armVersion != 0
+            && ds.MCU[0].kwVersion != 0 && ds.MCU[1].kwVersion != 0 && ds.MCU[2].kwVersion != 0
+            && ds.DIO[0].version != 0 && ds.DIO[1].version != 0 && ds.DIO[2].version != 0
+            && ds.DIO[3].version != 0 && ds.DIO[4].version != 0 && ds.DIO[5].version != 0
+            && ds.DIO[6].version != 0 && ds.DIO[7].version != 0 && ds.DIO[8].version != 0)
+        {
+            ret = RT_EOK;
+        } 
+    }
+
+    return ret;
+}
+
+
+static void versionFlt_detect(void)
+{
+    uint32_t i = 0;
+    
+    if(ds.MCU[0].armVersion != ds.MCU[1].armVersion || ds.MCU[0].armVersion != ds.MCU[2].armVersion)
+    {
+        pKW_SHM->me.verFlt.mcuVer = RT_ERROR;
+    }
+    
+    if(ds.MCU[0].kwVersion != ds.MCU[1].kwVersion || ds.MCU[0].kwVersion != ds.MCU[2].kwVersion)
+    {
+        pKW_SHM->me.verFlt.kwVer = RT_ERROR;
+    }
+    
+    if(ds.carID == 0 || ds.carID == 3)
+    {
+        for(i = 1; i < 27; i++)
+        {
+            if(ds.DIO[0].version != ds.DIO[i].version)
+            {
+                pKW_SHM->me.verFlt.dioVer = RT_ERROR;
+                break;
+            }
+        }
+    }
+    else if(ds.carID == 1 || ds.carID == 2)
+    {
+        for(i = 1; i < 9; i++)
+        {
+            if(ds.DIO[0].version != ds.DIO[i].version)
+            {
+                pKW_SHM->me.verFlt.dioVer = RT_ERROR;
+                break;
+            }
+        }
+    }
 }
 
 
@@ -93,15 +347,16 @@ static rt_err_t canNodeSts(void)
     
     if(ds.carID == 0 || ds.carID == 3)
     {
-        if(ds.DIO[0].flt.lost == RT_ERROR || ds.DIO[1].flt.lost == RT_ERROR || ds.DIO[2].flt.lost == RT_ERROR ||
-            ds.DIO[3].flt.lost == RT_ERROR || ds.DIO[4].flt.lost == RT_ERROR || ds.DIO[5].flt.lost == RT_ERROR ||
-            ds.DIO[6].flt.lost == RT_ERROR || ds.DIO[7].flt.lost == RT_ERROR || ds.DIO[8].flt.lost == RT_ERROR ||
-            ds.DIO[9].flt.lost == RT_ERROR || ds.DIO[10].flt.lost == RT_ERROR || ds.DIO[11].flt.lost == RT_ERROR ||
-            ds.DIO[12].flt.lost == RT_ERROR || ds.DIO[13].flt.lost == RT_ERROR || ds.DIO[14].flt.lost == RT_ERROR ||
-            ds.DIO[15].flt.lost == RT_ERROR || ds.DIO[16].flt.lost == RT_ERROR || ds.DIO[17].flt.lost == RT_ERROR ||
-            ds.DIO[18].flt.lost == RT_ERROR || ds.DIO[19].flt.lost == RT_ERROR || ds.DIO[20].flt.lost == RT_ERROR ||
-            ds.DIO[21].flt.lost == RT_ERROR || ds.DIO[22].flt.lost == RT_ERROR || ds.DIO[23].flt.lost == RT_ERROR ||
-            ds.DIO[24].flt.lost == RT_ERROR || ds.DIO[25].flt.lost == RT_ERROR || ds.DIO[26].flt.lost == RT_ERROR )
+        if(ds.DIO[0].flt.board == RT_ERROR || ds.DIO[1].flt.board == RT_ERROR || ds.DIO[2].flt.board == RT_ERROR ||
+            ds.DIO[3].flt.board == RT_ERROR || ds.DIO[4].flt.board == RT_ERROR || ds.DIO[5].flt.board == RT_ERROR ||
+            ds.DIO[6].flt.board == RT_ERROR || ds.DIO[7].flt.board == RT_ERROR || ds.DIO[8].flt.board == RT_ERROR ||
+            ds.DIO[9].flt.board == RT_ERROR || ds.DIO[10].flt.board == RT_ERROR || ds.DIO[11].flt.board == RT_ERROR ||
+            ds.DIO[12].flt.board == RT_ERROR || ds.DIO[13].flt.board == RT_ERROR || ds.DIO[14].flt.board == RT_ERROR ||
+            ds.DIO[15].flt.board == RT_ERROR || ds.DIO[16].flt.board == RT_ERROR || ds.DIO[17].flt.board == RT_ERROR ||
+            ds.DIO[18].flt.board == RT_ERROR || ds.DIO[19].flt.board == RT_ERROR || ds.DIO[20].flt.board == RT_ERROR ||
+            ds.DIO[21].flt.board == RT_ERROR || ds.DIO[22].flt.board == RT_ERROR || ds.DIO[23].flt.board == RT_ERROR ||
+            ds.DIO[24].flt.board == RT_ERROR || ds.DIO[25].flt.board == RT_ERROR || ds.DIO[26].flt.board == RT_ERROR ||
+            pKW_SHM->me.can.board == RT_ERROR || pKW_SHM->me.etu.board == RT_ERROR || pKW_SHM->me.mvb.board == RT_ERROR)
         {
             ret = RT_ERROR;
         }
@@ -112,9 +367,10 @@ static rt_err_t canNodeSts(void)
     }
     else if(ds.carID == 1 || ds.carID == 2)
     {
-        if(ds.DIO[0].flt.lost == RT_ERROR || ds.DIO[1].flt.lost == RT_ERROR || ds.DIO[2].flt.lost == RT_ERROR ||
-            ds.DIO[3].flt.lost == RT_ERROR || ds.DIO[4].flt.lost == RT_ERROR || ds.DIO[5].flt.lost == RT_ERROR ||
-            ds.DIO[6].flt.lost == RT_ERROR || ds.DIO[7].flt.lost == RT_ERROR || ds.DIO[8].flt.lost == RT_ERROR )
+        if(ds.DIO[0].flt.board == RT_ERROR || ds.DIO[1].flt.board == RT_ERROR || ds.DIO[2].flt.board == RT_ERROR ||
+            ds.DIO[3].flt.board == RT_ERROR || ds.DIO[4].flt.board == RT_ERROR || ds.DIO[5].flt.board == RT_ERROR ||
+            ds.DIO[6].flt.board == RT_ERROR || ds.DIO[7].flt.board == RT_ERROR || ds.DIO[8].flt.board == RT_ERROR ||
+            pKW_SHM->me.can.board == RT_ERROR || pKW_SHM->me.etu.board == RT_ERROR)
         {
             ret = RT_ERROR;
         }
@@ -132,14 +388,9 @@ static rt_err_t canNodeSts(void)
 }    
 
 
-
-
-
 static void sys_thread_entry(void* parameter)
 {
 	static  rt_uint32_t  TimingDelay = 0;
-    
-//    Bsp_ITemp_Config();
     
 	rt_kprintf("\r\n+ BSP TASK INFO : BSP Task Init Success!\r\n");
 
@@ -150,27 +401,24 @@ static void sys_thread_entry(void* parameter)
 
 		TimingDelay++;
 
-//        if(TimingDelay % 100 == 0)
-//        {
-//            Bsp_ITemp_Process();
-//        }
-
-
 #if IWDG_EN
         IWDG_ReloadCounter();       // 复位软件狗
 		HwWDog_Feed();              // 复位硬件狗
 #endif
-        if(TimingDelay % 10 == 0)
+        if(TimingDelay % 20 == 0)
 		{
             canNodeFlt_detect();
             
             powerFlt_detect();
             
-            if(ds.dc110v_flt == RT_ERROR || ds.dc5v_flt == RT_ERROR)
+            if(pKW_SHM->me.pwr.dc110v_a == RT_ERROR || pKW_SHM->me.pwr.dc5v_a == RT_ERROR
+                || pKW_SHM->me.pwr.dc110v_b == RT_ERROR || pKW_SHM->me.pwr.dc5v_b == RT_ERROR
+                || pKW_SHM->me.pwr.dc110v_c == RT_ERROR || pKW_SHM->me.pwr.dc5v_c == RT_ERROR
+            || pKW_SHM->me.verFlt.mcuVer == RT_ERROR || pKW_SHM->me.verFlt.kwVer == RT_ERROR || pKW_SHM->me.verFlt.dioVer == RT_ERROR)
             {
                 ds.fltLevel = 1;
             }
-            else if(ds.MCU[0].flt.lost == RT_ERROR || ds.MCU[1].flt.lost == RT_ERROR || ds.MCU[2].flt.lost == RT_ERROR)
+            else if(ds.MCU[0].flt.board == RT_ERROR || ds.MCU[1].flt.board == RT_ERROR || ds.MCU[2].flt.board == RT_ERROR)
             {
                 ds.fltLevel = 2;
             }

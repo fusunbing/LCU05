@@ -166,7 +166,7 @@ void can_rx_handle_register(void)
 {
     canRxHandle[CAN_FUN_OUTPUT] = can_output_handle;
     canRxHandle[CAN_FUN_IO_STS] = can_io_sts_handle;
-    canRxHandle[CAN_FUN_LIFESIGN] = can_lifesign_handle;
+    canRxHandle[CAN_FUN_POWER_ON] = can_lifesign_handle;
     canRxHandle[CAN_FUN_SELF_CHECK] = can_self_check_Handle; 
 }
 
@@ -209,9 +209,9 @@ static void Can_Send_PwrOn(void)
     CAN_EXTID_INFO info = {0};
     static uint8_t lifesign = 0;
     
-    info.id.funID = CAN_FUN_LIFESIGN;
+    info.id.funID = CAN_FUN_POWER_ON;
     info.id.src = ds.DIO[0].slotID;
-    info.id.dst = CAN_ADDR_MCU_GROUP;
+    info.id.dst = CAN_ADDR_BROADCAST;
     info.id.pri = CAN_PRI_H;
     info.id.port = 0;
 
@@ -286,7 +286,7 @@ void Can_Event_Service(void)
 
 void Can_Cycle_Service(void)
 {
-    if(rt_tick_get() > 2000)
+    if(rt_tick_get() > 3000)
     {
         can_manage_sts = CAN_MANAGE_SCAN;
     }
@@ -302,12 +302,16 @@ void Can_Cycle_Service(void)
             break;
         
         case CAN_MANAGE_SCAN:
+            
             //can¹ÊÕÏ¼ì²â
             CanNode_Update();
+        
             //IO¹ÊÕÏ¼ì²â
             io_fault_detect();
+        
             //ÖÜÆÚ·¢ËÍ×´Ì¬Êý¾Ý
-            Can_Send_Sts();        
+            Can_Send_Sts();  
+        
             break;
         
         default:            
