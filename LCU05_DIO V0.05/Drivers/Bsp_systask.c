@@ -8,6 +8,7 @@
 #include "Bsp_ioTask.h"
 #include "HwWDog_Max706.h"
 #include "userApp.h"
+#include "Bsp_ioFault.h"
 
 
 #define SYS_TASK_STACK_SIZE         (1024)
@@ -43,7 +44,14 @@ static void sys_thread_entry(void* parameter)
 
 		if(TimingDelay % 4 == 0)
 		{
-			System_Led_Logic(); // LED指示灯
+            if(rt_tick_get() > 3000)
+            {
+                //IO故障检测
+                io_fault_detect();
+            }
+            
+            // LED指示灯
+			System_Led_Logic(); 
 		}
 	}
 }

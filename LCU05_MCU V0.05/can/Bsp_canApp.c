@@ -378,6 +378,34 @@ static void can_send_PwrOn(void)
 }
 
 
+static void can_send_lifesign(void)
+{
+    CanTxMsg txMsg = { 0 };
+    CAN_EXTID_INFO info = { 0 };
+    static uint8_t lifesign = 0;
+    
+    info.id.funID = CAN_FUN_POWER_ON;
+    info.id.src = ds.slotID;
+    info.id.dst = CAN_ADDR_BROADCAST;
+    info.id.pri = CAN_PRI_L;
+    info.id.port = 0;
+
+    txMsg.ExtId = info.value;
+    txMsg.IDE = CAN_ID_EXT;
+    txMsg.RTR = 0;
+    txMsg.DLC = 6;
+    
+    txMsg.Data[0] = lifesign++;         //生命信号
+    txMsg.Data[1] = MINOR_VERSION;      //底层软件版本号
+    txMsg.Data[2] = pKW_SHM->kwVer;     //KW软件版本号
+    txMsg.Data[3] = ds.carID;           //车节号
+    txMsg.Data[4] = ds.dc110v;          //状态信息
+    txMsg.Data[5] = ds.dc5v;            //状态信息
+    
+    CANx_Send(&txMsg);
+}
+
+
 static void can_send_selfCheck(uint8_t index)
 {
     CanTxMsg txMsg = { 0 };
@@ -452,7 +480,7 @@ static rt_err_t isSendValid(void)
 }
 
 
-static void ExtCan_send_remoteIn(void)
+void ExtCan_send_remoteIn(void)
 {
     CanTxMsg txMsg = { 0 };
     CAN_EXTID_INFO info = { 0 };
@@ -473,7 +501,7 @@ static void ExtCan_send_remoteIn(void)
     txMsg.RTR = 0;
     txMsg.DLC = 8;
 
-    rt_memcpy(txMsg.Data, &ds.inBuf[64 + ds.carID * 8], txMsg.DLC);
+    rt_memcpy(txMsg.Data, ds.remoteIn, txMsg.DLC);
 
     CANx_Send(&txMsg);
     CANx_Send(&txMsg);
@@ -506,7 +534,7 @@ static void ExtCan_send_lcuFlt(void)
         txMsg.RTR = 0;
         txMsg.DLC = 8;
 
-        rt_memcpy(txMsg.Data, &pKW_SHM->mvb_port[30].date[i * 8], txMsg.DLC);
+        rt_memcpy(txMsg.Data, &pKW_SHM->mvb_port[0].date[i * 8], txMsg.DLC);
         CANx_Send(&txMsg);
         CANx_Send(&txMsg);
         rt_thread_delay(5);
@@ -539,7 +567,7 @@ static void ExtCan_send_lcuSts(void)
         txMsg.RTR = 0;
         txMsg.DLC = 8;
         
-        rt_memcpy(txMsg.Data, &pKW_SHM->mvb_port[31].date[i * 8], txMsg.DLC);
+        rt_memcpy(txMsg.Data, &pKW_SHM->mvb_port[1].date[i * 8], txMsg.DLC);
         CANx_Send(&txMsg);
         CANx_Send(&txMsg);
         rt_thread_delay(5);
@@ -598,7 +626,7 @@ void can_tx_serve(void)
             can_send_PwrOn();
             rt_thread_delay(5);
         
-            ExtCan_send_lcuFlt();
+            ExtCan_send_lcuSts();
         
             can_manage_sts = CAN_MANAGE_MD;        
             break;
@@ -610,7 +638,7 @@ void can_tx_serve(void)
             ExtCan_send_remoteIn();
             rt_thread_delay(5);
         
-            ExtCan_send_lcuSts();
+            ExtCan_send_lcuFlt();
         
             can_manage_sts = CAN_MANAGE_SCAN;
             break;

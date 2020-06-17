@@ -59,8 +59,19 @@ typedef union
 
 typedef struct
 {
-    uint32_t slotID;
-    uint32_t isLost;
+    uint8_t can1        :1;
+    uint8_t can2        :1;
+    uint8_t isLost      :1;
+    uint8_t res         :6;
+}CAN_NODE_STU, *PCAN_NODE_STU;
+
+
+typedef struct
+{
+    uint8_t slotID;
+    uint8_t version;
+    CAN_NODE_STU flt;
+    uint8_t res;
 
     uint8_t in[2];
     uint8_t ou;
@@ -78,13 +89,13 @@ typedef struct
 typedef struct
 {
     uint8_t lifesign;
-    uint8_t armVersion;
-    uint8_t kwVersion;
+    uint8_t armVer;
+    uint8_t kwVer;
     uint8_t carID;
     
     uint8_t dc110v;
     uint8_t dc5v;
-    uint8_t isLost;
+    CAN_NODE_STU flt;
     uint8_t res;
     
     uint8_t ou[8];
@@ -94,7 +105,10 @@ typedef struct
 
 typedef struct 
 {
-    uint32_t offset;
+    uint8_t slotID;
+    uint8_t boardType;
+    uint8_t version;
+    uint8_t offset;
 
     BOARD_DIO_STU DIO[3];
     BOARD_MCU_STU MCU[3];

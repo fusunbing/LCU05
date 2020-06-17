@@ -152,6 +152,12 @@ static void remoteIn_2oo3(void)
     {
         ds.Bits_inBuf[offset + i] = ((ds.MCU[0].Bits_remote_in[i] + ds.MCU[1].Bits_remote_in[i] + ds.MCU[2].Bits_remote_in[i]) >= 2) ? 1 : 0;
     }
+    
+    if(rt_memcmp(ds.remoteIn, &ds.inBuf[64 + ds.carID * 8], 8) != 0)
+    {
+        rt_memcpy(ds.remoteIn, &ds.inBuf[64 + ds.carID * 8], 8);
+        ExtCan_send_remoteIn();
+    }
 }
 
 

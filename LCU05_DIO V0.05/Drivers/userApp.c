@@ -48,28 +48,30 @@ void GetSlotID(void)
             id.Bits.bit3 = GetPin(SLOT_ID4);
             id.Bits.bit4 = GetPin(SLOT_ID5);
             id.Bits.bit5 = GetPin(SLOT_ID6);
-        }
+        }        
     }while(id.value < SLOT_ID_IO_MIN || id.value >SLOT_ID_IO_MAX);
+
+    ds.slotID = id.value;
     
     ds.DIO[0].slotID = id.value;
     
-    group = (ds.DIO[0].slotID - SLOT_ID_IO_MIN) / 3;
-    index = (ds.DIO[0].slotID - SLOT_ID_IO_MIN) % 3;
+    group = (ds.slotID - SLOT_ID_IO_MIN) / 3;
+    index = (ds.slotID - SLOT_ID_IO_MIN) % 3;
     ds.offset = group * OU_CNT;
 
     switch(index)
     {
         case 0: //A°å
-            ds.DIO[1].slotID =  ds.DIO[0].slotID + 1;
-            ds.DIO[2].slotID =  ds.DIO[0].slotID + 2;
+            ds.DIO[1].slotID =  ds.slotID + 1;
+            ds.DIO[2].slotID =  ds.slotID + 2;
             break;
         case 1: //B°å
-            ds.DIO[1].slotID =  ds.DIO[0].slotID + 1;
-            ds.DIO[2].slotID =  ds.DIO[0].slotID - 1;
+            ds.DIO[1].slotID =  ds.slotID + 1;
+            ds.DIO[2].slotID =  ds.slotID - 1;
             break;
         case 2: //C°å
-            ds.DIO[1].slotID =  ds.DIO[0].slotID - 2;
-            ds.DIO[2].slotID =  ds.DIO[0].slotID - 1;
+            ds.DIO[1].slotID =  ds.slotID - 2;
+            ds.DIO[2].slotID =  ds.slotID - 1;
             break;
         default:
             break;
@@ -80,6 +82,9 @@ void GetSlotID(void)
 void userApp_init(void)
 {
     DS_BitBand_Init();
+    
+    ds.version = (MAJOR_VERSION <<5 ) + MINOR_VERSION;
+    
     GetSlotID();
 }
 

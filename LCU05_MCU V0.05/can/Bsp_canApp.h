@@ -32,6 +32,8 @@ extern "C" {
 #define CAN_FUN_IO_STS                  (9)
 #define CAN_FUN_POWER_ON                (10)
 #define CAN_FUN_SELF_CHECK              (11)
+#define CAN_FUN_LIFESIGN                (12)
+
 
 #define CAN_FUN_CAR1_DATA               (0x80)
 #define CAN_FUN_CAR2_DATA               (0x90)
@@ -64,7 +66,7 @@ void can_rx_serve(CanRxMsg* pMsg);
 void can_tx_serve(void);
 void can_send_output(void);
 void can_send_remoteIn(void);
-
+void ExtCan_send_remoteIn(void);
 
 #ifdef __cplusplus
 }

@@ -261,6 +261,8 @@ typedef struct
     uint8_t ouBuf[128];
     uint32_t *Bits_inBuf;
     uint32_t *Bits_ouBuf;
+    uint8_t remoteIn[8];
+    
     
     uint8_t carID;
     uint8_t slotID;

@@ -4,15 +4,14 @@
 #include "Bsp_canApp.h"
 #include "Bsp_canPrint.h"
 #include "Can_fault_detect.h"
-#include "Bsp_ioFault.h"
 
 
 #define CAN_MANAGE_PWR_ON           (0)
 #define CAN_MANAGE_SELF_CHECK       (1)
 #define CAN_MANAGE_SCAN             (2)
+#define CAN_MANAGE_LIFESIGN         (3)
 
-
-static CanRx_hook canRxHandle[64] = {RT_NULL};
+static CanRx_hook canRxHandle[16] = {RT_NULL};
 
 static uint32_t can_manage_sts = CAN_MANAGE_PWR_ON;
 
@@ -22,19 +21,22 @@ static void can_output_handle(CanRxMsg* pMsg)
 
     info.value = pMsg->ExtId;
     
-    switch(info.id.src)
+    if(info.id.dst == CAN_ADDR_BROADCAST && pMsg->DLC == 8)
     {
-        case SLOT_ID_MCU_A:
-            rt_memcpy(ds.MCU[0].ou, pMsg->Data, 8);
-            break;
-        case SLOT_ID_MCU_B:
-            rt_memcpy(ds.MCU[1].ou, pMsg->Data, 8);
-            break;
-        case SLOT_ID_MCU_C:
-            rt_memcpy(ds.MCU[2].ou, pMsg->Data, 8);
-            break;
-        default:
-            break;
+        switch(info.id.src)
+        {
+            case SLOT_ID_MCU_A:
+                rt_memcpy(ds.MCU[0].ou, pMsg->Data, 8);
+                break;
+            case SLOT_ID_MCU_B:
+                rt_memcpy(ds.MCU[1].ou, pMsg->Data, 8);
+                break;
+            case SLOT_ID_MCU_C:
+                rt_memcpy(ds.MCU[2].ou, pMsg->Data, 8);
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -45,21 +47,25 @@ static void can_io_sts_handle(CanRxMsg* pMsg)
 
     info.value = pMsg->ExtId;
     
-    if(info.id.funID == CAN_FUN_IO_STS && pMsg->DLC == 8)
+    if(info.id.dst == CAN_ADDR_MCU_GROUP && pMsg->DLC == 8)
     {
-        if(info.id.src == ds.DIO[1].slotID)
+        if(info.id.src == ds.DIO[0].slotID)
         {
-            rt_memcpy(ds.DIO[1].in, pMsg->Data, 8);
+            rt_memcpy(ds.DIO[0].in, pMsg->Data, pMsg->DLC);
+        }
+        else if(info.id.src == ds.DIO[1].slotID)
+        {
+            rt_memcpy(ds.DIO[1].in, pMsg->Data, pMsg->DLC);
         }
         else if(info.id.src == ds.DIO[2].slotID)
         {
-            rt_memcpy(ds.DIO[2].in, pMsg->Data, 8);
+            rt_memcpy(ds.DIO[2].in, pMsg->Data, pMsg->DLC);
         }
     }
 }
 
 
-static void can_lifesign_handle(CanRxMsg* pMsg)
+static void can_powerOn_handle(CanRxMsg* pMsg)
 {
     CAN_EXTID_INFO info = {0};
     
@@ -166,7 +172,7 @@ void can_rx_handle_register(void)
 {
     canRxHandle[CAN_FUN_OUTPUT] = can_output_handle;
     canRxHandle[CAN_FUN_IO_STS] = can_io_sts_handle;
-    canRxHandle[CAN_FUN_POWER_ON] = can_lifesign_handle;
+    canRxHandle[CAN_FUN_POWER_ON] = can_powerOn_handle;
     canRxHandle[CAN_FUN_SELF_CHECK] = can_self_check_Handle; 
 }
 
@@ -187,9 +193,10 @@ void can_rx_serve(CanRxMsg* pMsg)
         slotID_Flt_cnt++;
         
         GetSlotID();
+        return;
     }
     
-    if(info.id.funID < 64 && (info.id.dst == CAN_ADDR_BROADCAST || info.id.dst == CAN_ADDR_MCU_GROUP || info.id.dst == ds.DIO[0].slotID))
+    if(info.id.funID < 16)
     {
         //can接收数据处理
         if(canRxHandle[info.id.funID] != RT_NULL)
@@ -210,7 +217,7 @@ static void Can_Send_PwrOn(void)
     static uint8_t lifesign = 0;
     
     info.id.funID = CAN_FUN_POWER_ON;
-    info.id.src = ds.DIO[0].slotID;
+    info.id.src = ds.slotID;
     info.id.dst = CAN_ADDR_BROADCAST;
     info.id.pri = CAN_PRI_H;
     info.id.port = 0;
@@ -221,7 +228,7 @@ static void Can_Send_PwrOn(void)
     txMsg.DLC = 2;
     
     txMsg.Data[0] = lifesign++;     //生命信号
-    txMsg.Data[1] = MINOR_VERSION;  //软件版本号
+    txMsg.Data[1] = ds.version;     //软件版本号
 
     CANx_Send(&txMsg);
 }
@@ -247,11 +254,8 @@ static void Can_Send_Input(void)
     txMsg.Data[0] = ds.DIO[0].in[0];
     txMsg.Data[1] = ds.DIO[0].in[1];
     
-    if(can_manage_sts == CAN_MANAGE_SCAN)
-    {
-        CANx_Send(&txMsg);
-        CANx_Send(&txMsg);
-    }
+    CANx_Send(&txMsg);
+    CANx_Send(&txMsg);
 }
 
 
@@ -286,14 +290,19 @@ void Can_Event_Service(void)
 
 void Can_Cycle_Service(void)
 {
+    rt_thread_delay(ds.DIO[0].slotID);
+    
     if(rt_tick_get() > 3000)
     {
+        //can故障检测
+        CanNode_Update();
+        
         can_manage_sts = CAN_MANAGE_SCAN;
     }
 
     switch(can_manage_sts)
     {
-        case CAN_MANAGE_PWR_ON:            
+        case CAN_MANAGE_PWR_ON:
             Can_Send_PwrOn();
             break;
         
@@ -301,13 +310,7 @@ void Can_Cycle_Service(void)
             //进入自检态
             break;
         
-        case CAN_MANAGE_SCAN:
-            
-            //can故障检测
-            CanNode_Update();
-        
-            //IO故障检测
-            io_fault_detect();
+        case CAN_MANAGE_SCAN:            
         
             //周期发送状态数据
             Can_Send_Sts();  
