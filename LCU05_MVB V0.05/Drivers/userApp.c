@@ -70,6 +70,6 @@ void userApp_init(void)
     ds.boardType = BOARD_TYPE_ID_MVB;
     
     //Èí¼þ°æ±¾ºÅ
-    ds.version = 5;
+    ds.version = MVB_VERSION;
 }
 

@@ -93,8 +93,9 @@ uint8_t mvbPort_config(uint8_t carID)
 
 void mvbPort_Read(uint8_t carID)
 {
-    uint32_t  i;
-
+    uint32_t i;
+    static uint32_t cnt = 0;
+    
 	switch(carID)
 	{
 		case 0:
@@ -104,7 +105,7 @@ void mvbPort_Read(uint8_t carID)
                 {
                     if(gf_get_pd(mc1_ports[i].index, ds.mvb_port[i].data, MVB_BYTE_LEN[mc1_ports[i].fcode]) != 0)
                     {
-                        
+                        cnt = 0;
                     }
                 }
             }
@@ -116,7 +117,7 @@ void mvbPort_Read(uint8_t carID)
                 {
                     if(gf_get_pd(mc2_ports[i].index, ds.mvb_port[i].data, MVB_BYTE_LEN[mc2_ports[i].fcode]) != 0)
                     {
-                        
+                        cnt = 0;
                     }
                 }
             }
@@ -124,6 +125,17 @@ void mvbPort_Read(uint8_t carID)
 		default:
 			break;
 	}
+    
+    if(cnt < 20)
+    {
+        cnt++;
+        System_Led_SetMode(LED_ACT, MODE_FLASH_FAST);
+    }
+    else
+    {
+        System_Led_SetMode(LED_ACT, MODE_FLASH_SLOW);
+    }
+    
 }
 
 

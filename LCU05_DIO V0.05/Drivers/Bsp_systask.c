@@ -44,7 +44,7 @@ static void sys_thread_entry(void* parameter)
 
 		if(TimingDelay % 4 == 0)
 		{
-            if(rt_tick_get() > 3000)
+            if(rt_tick_get() > 2000)
             {
                 //IOπ ’œºÏ≤‚
                 io_fault_detect();

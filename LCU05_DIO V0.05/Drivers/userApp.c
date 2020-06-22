@@ -83,7 +83,7 @@ void userApp_init(void)
 {
     DS_BitBand_Init();
     
-    ds.version = (MAJOR_VERSION <<5 ) + MINOR_VERSION;
+    ds.version = DIO_VERSION;
     
     GetSlotID();
 }

@@ -28,8 +28,7 @@ static void can_input_handle(CanRxMsg* pMsg)
     {
         if(info.id.src >= SLOT_ID_IO_MIN && info.id.src <= SLOT_ID_IO_MAX)
         {
-            ds.DIO[info.id.src - SLOT_ID_IO_MIN].in[0] = pMsg->Data[0];
-            ds.DIO[info.id.src - SLOT_ID_IO_MIN].in[1] = pMsg->Data[1];
+            rt_memcpy(ds.DIO[info.id.src - SLOT_ID_IO_MIN].in, pMsg->Data, pMsg->DLC);
         }
     }
 }
@@ -46,13 +45,13 @@ static void can_output_handle(CanRxMsg* pMsg)
         switch(info.id.src)
         {
             case SLOT_ID_MCU_A:
-                rt_memcpy(ds.MCU[0].ou, pMsg->Data, 8);
+                rt_memcpy(ds.MCU[0].ou, pMsg->Data, pMsg->DLC);
                 break;
             case SLOT_ID_MCU_B:
-                rt_memcpy(ds.MCU[1].ou, pMsg->Data, 8);
+                rt_memcpy(ds.MCU[1].ou, pMsg->Data, pMsg->DLC);
                 break;
             case SLOT_ID_MCU_C:
-                rt_memcpy(ds.MCU[2].ou, pMsg->Data, 8);
+                rt_memcpy(ds.MCU[2].ou, pMsg->Data, pMsg->DLC);
                 break;
             default:
                 break;
@@ -72,17 +71,18 @@ static void can_remoteIn_handle(CanRxMsg* pMsg)
         switch(info.id.src)
         {
             case SLOT_ID_MCU_A:
-                rt_memcpy(ds.MCU[0].remote_in, pMsg->Data, 8);
+                rt_memcpy(ds.MCU[0].remote_in, pMsg->Data, pMsg->DLC);
                 break;
             case SLOT_ID_MCU_B:
-                rt_memcpy(ds.MCU[1].remote_in, pMsg->Data, 8);
+                rt_memcpy(ds.MCU[1].remote_in, pMsg->Data, pMsg->DLC);
                 break;
             case SLOT_ID_MCU_C:
-                rt_memcpy(ds.MCU[2].remote_in, pMsg->Data, 8);
+                rt_memcpy(ds.MCU[2].remote_in, pMsg->Data, pMsg->DLC);
                 break;
             default:
                 break;
         }
+        remoteIn_2oo3();
     }
 }
 
@@ -113,10 +113,14 @@ static void can_powerOn_handle(CanRxMsg* pMsg)
     {
         switch(info.id.src)
         {
-            case SLOT_ID_MVB:                
-                ds.mvb_Lifesign = pMsg->Data[0];
-                ds.mvb_Version = pMsg->Data[1];
-                ds.mvb_CarID = pMsg->Data[2];
+            case SLOT_ID_MVB:
+                if(pMsg->DLC == 3)
+                {
+                    ds.mvb_Lifesign = pMsg->Data[0];
+                    ds.mvb_Version = pMsg->Data[1];
+                    ds.mvb_CarID = pMsg->Data[2];
+                }
+                break;
             case SLOT_ID_CAN:
                 if(info.id.port == 1 && pMsg->DLC == 4)
                 {
@@ -131,7 +135,8 @@ static void can_powerOn_handle(CanRxMsg* pMsg)
                     ds.can2_Version = pMsg->Data[1];
                     ds.can2_CarID = pMsg->Data[2];
                     ds.can2_ExtCan = pMsg->Data[3];
-                }                
+                }     
+                break;
             case SLOT_ID_ETU:
                 if(pMsg->DLC == 3)
                 {
@@ -139,6 +144,7 @@ static void can_powerOn_handle(CanRxMsg* pMsg)
                     ds.etu_Version = pMsg->Data[1];
                     ds.etu_CarID = pMsg->Data[2];
                 }
+                break;
             case SLOT_ID_MCU_A:
                 if(pMsg->DLC == 6)
                 {
@@ -169,12 +175,82 @@ static void can_powerOn_handle(CanRxMsg* pMsg)
 }
 
 
+#include <time.h>
+extern void set_date(rt_uint32_t year, rt_uint32_t month, rt_uint32_t day);
+extern void set_time(rt_uint32_t hour, rt_uint32_t minute, rt_uint32_t second);
+
+static rt_err_t isRtc_Valid(uint8_t year, uint8_t mon,uint8_t day, uint8_t hour,uint8_t min, uint8_t sec)
+{
+    if ((year < 20 || year > 99) || (mon == 0 && mon > 12) || (day == 0 && day > 31)
+        || hour > 59 || min > 59 || sec > 59)
+    {
+        return RT_ERROR;
+    }
+    else
+    {
+        return RT_EOK;
+    }
+}
+
+
+static void setRtc(uint8_t year, uint8_t mon,uint8_t day, uint8_t hour,uint8_t min, uint8_t sec)
+{
+    time_t now;
+    struct tm* ti = RT_NULL;
+
+    /* get current time */
+    time(&now);
+    ti = localtime(&now);
+    ti->tm_year = (ti->tm_year + 1900) % 100;
+    ti->tm_mon = ti->tm_mon + 1;
+    
+    if (ti->tm_year != year || ti->tm_mon != mon || ti->tm_mday != day || ti->tm_hour != hour || ti->tm_min != min)
+    {
+        set_date((rt_uint32_t)(year + 2000), (rt_uint32_t)mon, (rt_uint32_t)day);
+        set_time((rt_uint32_t)hour, (rt_uint32_t)min, (rt_uint32_t)sec);
+    }
+}
+
+
+static void can_mvb_rtc_handle(CanRxMsg* pMsg)
+{
+    CAN_EXTID_INFO info = {0};
+
+    info.value = pMsg->ExtId;
+    
+    if(info.id.src == SLOT_ID_CAN || info.id.src == SLOT_ID_MVB)
+    {
+        if(info.id.dst == CAN_ADDR_BROADCAST)
+        {
+            pKW_SHM->lifeSign =(pMsg->Data[0] << 8) + pMsg->Data[1]; //生命信号，大端模式
+            
+            if(RT_EOK == isRtc_Valid(pMsg->Data[2], pMsg->Data[3], pMsg->Data[4], pMsg->Data[5], pMsg->Data[6], pMsg->Data[7]))
+            {
+                pKW_SHM->year = pMsg->Data[2];
+                pKW_SHM->mon = pMsg->Data[3];
+                pKW_SHM->day = pMsg->Data[4];
+                pKW_SHM->hour = pMsg->Data[5];
+                pKW_SHM->min = pMsg->Data[6];
+                pKW_SHM->sec = pMsg->Data[7];
+                
+                setRtc(pKW_SHM->year, pKW_SHM->mon, pKW_SHM->day, pKW_SHM->hour, pKW_SHM->min, pKW_SHM->sec);
+            }
+        }
+    }
+}
+
+
 //远程输入信号存储
 static void can_lcu_sts_handle(CanRxMsg* pMsg)
 {
     CAN_EXTID_INFO info = { 0 };
     uint32_t offset = 0;
     uint32_t carID = 0;
+    
+//    static uint16_t mc1_lifesign = 0;
+//    static uint16_t mc2_lifesign = 0;
+//    static uint32_t mc1_cnt = 0;
+//    static uint32_t mc2_cnt = 0;
     
     info.value = pMsg->ExtId;
     
@@ -201,64 +277,7 @@ static void can_lcu_sts_handle(CanRxMsg* pMsg)
         }
         else if(offset == 9)
         {
-            if(carID == 0)
-            {
-            
-            
-            }
-        }
-    }
-}
-
-
-#include <time.h>
-extern void set_date(rt_uint32_t year, rt_uint32_t month, rt_uint32_t day);
-extern void set_time(rt_uint32_t hour, rt_uint32_t minute, rt_uint32_t second);
-
-static rt_err_t isRtc_Valid(uint8_t year, uint8_t mon,uint8_t day, uint8_t hour,uint8_t min, uint8_t sec)
-{
-    if ((year < 20 || year > 99) || (mon == 0 && mon > 12) || (day == 0 && day > 31)
-        || hour > 59 || min > 59 || sec > 59)
-    {
-        return RT_ERROR;
-    }
-    else
-    {
-        return RT_EOK;
-    }
-}
-
-
-static void setRtc(uint8_t year, uint8_t mon,uint8_t day, uint8_t hour,uint8_t min, uint8_t sec)
-{
-    time_t now;
-	struct tm* ti = RT_NULL;
-
-    /* get current time */
-    time(&now);
-    ti = localtime(&now);
-    ti->tm_year = (ti->tm_year + 1900) % 100;
-    ti->tm_mon = ti->tm_mon + 1;
-    
-    if (ti->tm_year != year || ti->tm_mon != mon || ti->tm_mday != day || ti->tm_hour != hour || ti->tm_min != min)
-    {
-        set_date((rt_uint32_t)(year + 2000), (rt_uint32_t)mon, (rt_uint32_t)day);
-        set_time((rt_uint32_t)hour, (rt_uint32_t)min, (rt_uint32_t)sec);
-    }
-}
-
-
-static void can_mvb_rtc_handle(CanRxMsg* pMsg)
-{
-    CAN_EXTID_INFO info = {0};
-
-    info.value = pMsg->ExtId;
-    
-    if(info.id.src == SLOT_ID_CAN || info.id.src == SLOT_ID_MVB)
-    {
-        if(info.id.dst == CAN_ADDR_BROADCAST)
-        {
-            pKW_SHM->lifeSign =(pMsg->Data[0] << 8) + pMsg->Data[1]; //生命信号，大端模式            
+            pKW_SHM->lifeSign =(pMsg->Data[0] << 8) + pMsg->Data[1]; //生命信号，大端模式
             
             if(RT_EOK == isRtc_Valid(pMsg->Data[2], pMsg->Data[3], pMsg->Data[4], pMsg->Data[5], pMsg->Data[6], pMsg->Data[7]))
             {
@@ -268,8 +287,9 @@ static void can_mvb_rtc_handle(CanRxMsg* pMsg)
                 pKW_SHM->hour = pMsg->Data[5];
                 pKW_SHM->min = pMsg->Data[6];
                 pKW_SHM->sec = pMsg->Data[7];
+                
+                setRtc(pKW_SHM->year, pKW_SHM->mon, pKW_SHM->day, pKW_SHM->hour, pKW_SHM->min, pKW_SHM->sec);
             }
-            //setRtc(pMsg->Data[2], pMsg->Data[3], pMsg->Data[4], pMsg->Data[5], pMsg->Data[6], pMsg->Data[7]);
         }
     }
 }
@@ -290,7 +310,6 @@ void can_rx_handle_register(void)
     {
         canRxHandle[i] = can_lcu_sts_handle;
     }
-
 }
 
 
@@ -368,35 +387,7 @@ static void can_send_PwrOn(void)
     txMsg.DLC = 6;
     
     txMsg.Data[0] = lifesign++;         //生命信号
-    txMsg.Data[1] = MINOR_VERSION;      //底层软件版本号
-    txMsg.Data[2] = pKW_SHM->kwVer;     //KW软件版本号
-    txMsg.Data[3] = ds.carID;           //车节号
-    txMsg.Data[4] = ds.dc110v;          //状态信息
-    txMsg.Data[5] = ds.dc5v;            //状态信息
-    
-    CANx_Send(&txMsg);
-}
-
-
-static void can_send_lifesign(void)
-{
-    CanTxMsg txMsg = { 0 };
-    CAN_EXTID_INFO info = { 0 };
-    static uint8_t lifesign = 0;
-    
-    info.id.funID = CAN_FUN_POWER_ON;
-    info.id.src = ds.slotID;
-    info.id.dst = CAN_ADDR_BROADCAST;
-    info.id.pri = CAN_PRI_L;
-    info.id.port = 0;
-
-    txMsg.ExtId = info.value;
-    txMsg.IDE = CAN_ID_EXT;
-    txMsg.RTR = 0;
-    txMsg.DLC = 6;
-    
-    txMsg.Data[0] = lifesign++;         //生命信号
-    txMsg.Data[1] = MINOR_VERSION;      //底层软件版本号
+    txMsg.Data[1] = MCU_VERSION;        //底层软件版本号
     txMsg.Data[2] = pKW_SHM->kwVer;     //KW软件版本号
     txMsg.Data[3] = ds.carID;           //车节号
     txMsg.Data[4] = ds.dc110v;          //状态信息
@@ -519,7 +510,7 @@ static void ExtCan_send_lcuFlt(void)
         return;
     }
 
-    mvb_flt_data(pKW_SHM->mvb_port[30].date);
+    //mvb_flt_data(pKW_SHM->mvb_port[0].date);
 
     for(i = 0; i < 4; i++)
     {
@@ -552,7 +543,7 @@ static void ExtCan_send_lcuSts(void)
         return;
     }
 
-    mvb_sts_data(pKW_SHM->mvb_port[31].date);
+    //mvb_sts_data(pKW_SHM->mvb_port[1].date);
 
     for(i = 0; i < 4; i++)
     {
@@ -579,8 +570,10 @@ void can_tx_serve(void)
 {
     static uint8_t index = 0;
     
+    rt_thread_delay(ds.slotID);
+    
     //can故障检测
-	CanNode_Update();
+    CanNode_Update();
     
     switch(can_manage_sts)
     {
@@ -594,7 +587,7 @@ void can_tx_serve(void)
             }
             else
             {
-                if(rt_tick_get() < 3000) //不满足输出通道自检条件且上电超过3s直接进入扫描态
+                if(rt_tick_get() > 2000) //不满足输出通道自检条件且上电超过2s直接进入扫描态
                 {
                     can_manage_sts = CAN_MANAGE_SCAN;
                 }
@@ -628,7 +621,7 @@ void can_tx_serve(void)
         
             ExtCan_send_lcuSts();
         
-            can_manage_sts = CAN_MANAGE_MD;        
+            can_manage_sts = CAN_MANAGE_MD;
             break;
         case CAN_MANAGE_MD:
             

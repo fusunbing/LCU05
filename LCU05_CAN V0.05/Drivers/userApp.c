@@ -57,7 +57,7 @@ void userApp_init(void)
     }while(ds.carID > 3);
     
     ds.boardTypeID = BOARD_TYPE_ID_CAN;
-    ds.version = SOFTWARE_VERSION;
+    ds.version = CAN_VERSION;
 }
 
 

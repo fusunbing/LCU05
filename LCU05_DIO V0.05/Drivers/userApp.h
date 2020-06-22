@@ -12,8 +12,7 @@ extern "C" {
 
 
 //软件版本号
-#define MAJOR_VERSION       (0)     //主版本号
-#define MINOR_VERSION       (5)     //子版本号
+#define DIO_VERSION         (5)
 
 //板类型
 #define	BOARD_TYPE_ID_MVB	(1)

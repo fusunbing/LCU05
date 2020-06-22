@@ -105,7 +105,7 @@ static uint32_t clockSouc = 0;
 
 void rt_hw_board_init(void)
 {
-    uint32_t rcc_reg, crystl;
+    uint32_t crystl;
     
 	/* NAND_IDTypeDef NAND_ID */
 	DBGMCU_APB1PeriphConfig(DBGMCU_IWDG_STOP, ENABLE);
@@ -113,10 +113,7 @@ void rt_hw_board_init(void)
 #if  IWDG_EN
 	/* init IWDG */
 	IWDG_Init(20);
-#endif
-    
-	/* Get the ystem reset flag */
-	rcc_reg = RCC->CSR;
+#endif    
     
 	/* NVIC Configuration */
 	NVIC_Configuration();

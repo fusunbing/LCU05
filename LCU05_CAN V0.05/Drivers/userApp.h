@@ -13,7 +13,7 @@ extern "C" {
 #include "stm32f4xx.h"
 
 
-#define SOFTWARE_VERSION    (5) 	//软件版本号
+#define CAN_VERSION         (5) 	//软件版本号
 
 #define	SLOT_ID_MVB			(1)
 #define	SLOT_ID_CAN			(2)

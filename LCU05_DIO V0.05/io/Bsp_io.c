@@ -59,6 +59,7 @@ void inputProcess(PBOARD_DIO_STU pDio)
 {
     uint8_t i;    
     uint8_t tempIn[2];
+    static rt_tick_t tick = 0;
 
     for(i = 0; i < (IN_CNT + OU_FB_CNT); i++)
     {
@@ -89,7 +90,12 @@ void inputProcess(PBOARD_DIO_STU pDio)
     
     if(tempIn[0] != pDio->in[0] || tempIn[1] != pDio->in[1])
     {
-        Can_Send_Event();
+        if((rt_tick_get() - tick) > 100)
+        {
+            Can_Send_Event();
+        }
+        
+        tick = rt_tick_get();
     }
 }
 

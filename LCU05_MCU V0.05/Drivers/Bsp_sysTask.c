@@ -26,9 +26,92 @@ static struct rt_semaphore sem_10ms;
 static rt_err_t sem_10ms_init;
 
 
+static rt_err_t isVersionValid(void)
+{
+    rt_err_t ret = RT_ERROR;
+    
+    if(ds.carID == CAR_ID_MC1 || ds.carID == CAR_ID_MC2)
+    {
+        if(ds.mvb_Version != 0 && ds.can1_Version != 0 && ds.can2_Version != 0 && ds.etu_Version != 0
+            && ds.MCU[0].armVersion != 0 && ds.MCU[1].armVersion != 0 && ds.MCU[2].armVersion != 0
+            && ds.MCU[0].kwVersion != 0 && ds.MCU[1].kwVersion != 0 && ds.MCU[2].kwVersion != 0
+            && ds.DIO[0].version != 0 && ds.DIO[1].version != 0 && ds.DIO[2].version != 0
+            && ds.DIO[3].version != 0 && ds.DIO[4].version != 0 && ds.DIO[5].version != 0
+            && ds.DIO[6].version != 0 && ds.DIO[7].version != 0 && ds.DIO[8].version != 0
+            && ds.DIO[9].version != 0 && ds.DIO[10].version != 0 && ds.DIO[11].version != 0
+            && ds.DIO[12].version != 0 && ds.DIO[13].version != 0 && ds.DIO[14].version != 0
+            && ds.DIO[15].version != 0 && ds.DIO[16].version != 0 && ds.DIO[17].version != 0
+            && ds.DIO[18].version != 0 && ds.DIO[19].version != 0 && ds.DIO[20].version != 0
+            && ds.DIO[21].version != 0 && ds.DIO[22].version != 0 && ds.DIO[23].version != 0
+            && ds.DIO[24].version != 0 && ds.DIO[25].version != 0 && ds.DIO[26].version != 0)
+        {
+            ret = RT_EOK;
+        } 
+    }
+    else if(ds.carID == CAR_ID_TP1 || ds.carID == CAR_ID_TP2)
+    {
+        if(ds.can1_Version != 0 && ds.can2_Version != 0 && ds.etu_Version != 0
+            && ds.MCU[0].armVersion != 0 && ds.MCU[1].armVersion != 0 && ds.MCU[2].armVersion != 0
+            && ds.MCU[0].kwVersion != 0 && ds.MCU[1].kwVersion != 0 && ds.MCU[2].kwVersion != 0
+            && ds.DIO[0].version != 0 && ds.DIO[1].version != 0 && ds.DIO[2].version != 0
+            && ds.DIO[3].version != 0 && ds.DIO[4].version != 0 && ds.DIO[5].version != 0
+            && ds.DIO[6].version != 0 && ds.DIO[7].version != 0 && ds.DIO[8].version != 0)
+        {
+            ret = RT_EOK;
+        } 
+    }
+
+    return ret;
+}
+
+
+static void versionFlt_detect(void)
+{
+    uint32_t i = 0;
+    
+    ds.MCU[ds.slotID - SLOT_ID_MCU_A].armVersion = MCU_VERSION;
+    ds.MCU[ds.slotID - SLOT_ID_MCU_A].kwVersion = pKW_SHM->kwVer;
+    
+    if(ds.MCU[0].armVersion != MCU_VERSION || ds.MCU[1].armVersion != MCU_VERSION || ds.MCU[2].armVersion  != MCU_VERSION)
+    {
+        pKW_SHM->me.verFlt.mcuVer = RT_ERROR;
+    }
+    
+    if(ds.MCU[0].kwVersion != KW_VERSION || ds.MCU[1].kwVersion != KW_VERSION || ds.MCU[2].kwVersion  != KW_VERSION)
+    {
+        pKW_SHM->me.verFlt.kwVer = RT_ERROR;
+    }
+    
+    if(ds.carID == CAR_ID_MC1 || ds.carID == CAR_ID_MC2)
+    {
+        for(i = 0; i < DIO_CNT_6U; i++)
+        {
+            if(ds.DIO[i].version != DIO_VERSION)
+            {
+                pKW_SHM->me.verFlt.dioVer = RT_ERROR;
+                break;
+            }
+        }
+    }
+    else if(ds.carID == CAR_ID_TP1 || ds.carID == CAR_ID_TP2)
+    {
+        for(i = 0; i < DIO_CNT_3U; i++)
+        {
+            if(ds.DIO[i].version != DIO_VERSION)
+            {
+                pKW_SHM->me.verFlt.dioVer = RT_ERROR;
+                break;
+            }
+        }
+    }
+}
+
+
 static void canNodeFlt_detect(void)
 {
-    uint32_t i;
+    uint32_t i;    
+    static uint32_t mcu_logic_cnt[3] = { 0 };
+    static uint32_t mcu_remoteIn_cnt[3] = { 0 };
     
     for(i = 0; i < IO_BOARD_MAX; i++)
     {
@@ -47,11 +130,11 @@ static void canNodeFlt_detect(void)
         
         if(ds.DIO[i].ouFlt != 0)
         {
-            ds.DIO[i].flt.in = RT_ERROR;
+            ds.DIO[i].flt.ou = RT_ERROR;
         }
         else
         {
-            ds.DIO[i].flt.in = RT_EOK;
+            ds.DIO[i].flt.ou = RT_EOK;
         }
         
         if(ds.DIO[i].flt.can1 != RT_EOK
@@ -65,8 +148,14 @@ static void canNodeFlt_detect(void)
         else
         {
             ds.DIO[i].flt.board = RT_EOK;
-        }        
+        }
         
+        pKW_SHM->me.dio[i].board = ds.DIO[i].flt.board;
+        pKW_SHM->me.dio[i].can1 = ds.DIO[i].flt.can1;
+        pKW_SHM->me.dio[i].can2 = ds.DIO[i].flt.can2;
+        pKW_SHM->me.dio[i].in = ds.DIO[i].flt.in;
+        pKW_SHM->me.dio[i].ou = ds.DIO[i].flt.ou;
+        pKW_SHM->me.dio[i].lost = ds.DIO[i].flt.lost;
         
         if(ds.DIO[i].flt.lost == RT_ERROR)
         {
@@ -74,15 +163,52 @@ static void canNodeFlt_detect(void)
         }
     }
 
+    rt_memcpy(ds.MCU[ds.slotID - SLOT_ID_MCU_A].ou, ds.ouBuf, 8);
+
     for(i = 0; i < 3; i++)
     {
         ds.MCU[i].flt.can1 = (Get_CanSts(1, (SLOT_ID_MCU_A + i)) == RT_ERROR) ? RT_ERROR : RT_EOK;
         ds.MCU[i].flt.can2 = (Get_CanSts(2, (SLOT_ID_MCU_A + i)) == RT_ERROR) ? RT_ERROR : RT_EOK;
         ds.MCU[i].flt.lost = (ds.MCU[i].flt.can1 == RT_ERROR && ds.MCU[i].flt.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
         
+        if(rt_memcmp(ds.MCU[i].ou, ds.MCU[(i + 1) % 3].ou, 8) != 0 
+            && rt_memcmp(ds.MCU[i].ou, ds.MCU[(i + 2) % 3].ou, 8) != 0)
+        {
+            mcu_logic_cnt[i]++;
+        }
+        else
+        {
+            mcu_logic_cnt[i] = 0;
+        }
+        
+        if(rt_memcmp(ds.MCU[i].remote_in, ds.MCU[(i + 1) % 3].remote_in, 8) != 0 
+            && rt_memcmp(ds.MCU[i].remote_in, ds.MCU[(i + 2) % 3].remote_in, 8) != 0)
+        {
+            mcu_remoteIn_cnt[i]++;
+        }
+        else
+        {
+            mcu_remoteIn_cnt[i] = 0;
+        }
+        
+        if(mcu_logic_cnt[i] > 10)
+        {
+            ds.MCU[i].flt.logic = RT_ERROR;
+        }
+        
+        if(mcu_remoteIn_cnt[i] > 10)
+        {
+            ds.MCU[i].flt.remoteIn = RT_ERROR;
+        }
+        
+//        ds.MCU[i].flt.logic = (mcu_logic_cnt[i] > 5) ? RT_ERROR : RT_EOK;
+//        ds.MCU[i].flt.remoteIn = (mcu_remoteIn_cnt[i] > 5) ? RT_ERROR : RT_EOK;
+
         if(ds.MCU[i].flt.can1 != RT_EOK
             || ds.MCU[i].flt.can2 != RT_EOK
-            || ds.MCU[i].flt.lost != RT_EOK)
+            || ds.MCU[i].flt.lost != RT_EOK
+            || ds.MCU[i].flt.logic != RT_EOK
+            || ds.MCU[i].flt.remoteIn != RT_EOK)
         {
             ds.MCU[i].flt.board = RT_ERROR;
         }
@@ -91,29 +217,20 @@ static void canNodeFlt_detect(void)
             ds.MCU[i].flt.board = RT_EOK;
         }
         
-        if(ds.MCU[i].flt.lost == RT_ERROR)
-        {
-            rt_memset(ds.MCU[i].remote_in, 0, 8);
-            rt_memset(ds.MCU[i].ou, 0, 8);
-        }
-    }
-    
-    for(i = 0; i < IO_BOARD_MAX; i++)
-    {
-        pKW_SHM->me.dio[i].board = ds.DIO[i].flt.board;        
-        pKW_SHM->me.dio[i].can1 = ds.DIO[i].flt.can1;
-        pKW_SHM->me.dio[i].can2 = ds.DIO[i].flt.can2;
-        pKW_SHM->me.dio[i].in = ds.DIO[i].flt.in;
-        pKW_SHM->me.dio[i].ou = ds.DIO[i].flt.ou;        
-        pKW_SHM->me.dio[i].lost = ds.DIO[i].flt.lost;
-    }
-    
-    for(i = 0; i < 3; i++)
-    {
         pKW_SHM->me.mcu[i].board = ds.MCU[i].flt.board;
         pKW_SHM->me.mcu[i].can1 = ds.MCU[i].flt.can1;
-        pKW_SHM->me.mcu[i].can2 = ds.MCU[i].flt.can2;   
+        pKW_SHM->me.mcu[i].can2 = ds.MCU[i].flt.can2;
         pKW_SHM->me.mcu[i].lost = ds.MCU[i].flt.lost;
+       
+        if(ds.MCU[i].flt.lost == RT_ERROR || ds.MCU[i].flt.logic == RT_ERROR)
+        {
+            rt_memset(ds.MCU[i].ou, 0, 8);
+        }
+        
+        if(ds.MCU[i].flt.lost == RT_ERROR || ds.MCU[i].flt.remoteIn == RT_ERROR)
+        {
+            rt_memset(&ds.ouBuf[64], 0, 8);
+        }
     }
     
     pKW_SHM->me.can.can1 =  (Get_CanSts(1, SLOT_ID_CAN) == RT_ERROR) ? RT_ERROR : RT_EOK;
@@ -164,6 +281,27 @@ static void canNodeFlt_detect(void)
     {
         pKW_SHM->me.etu.board = RT_EOK;
     }
+    
+    for(i = 0; i < 4; i++)
+    {
+        if(i != ds.carID)
+        {
+            pKW_SHM->me.car[i].can1 = Get_ExtCanSts(1, i);
+            pKW_SHM->me.car[i].can2 = Get_ExtCanSts(2, i);
+            pKW_SHM->me.car[i].lost = (pKW_SHM->me.car[i].can1 == RT_ERROR && pKW_SHM->me.car[i].can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+        }
+        else
+        {
+            pKW_SHM->me.car[i].can1 = RT_EOK;
+            pKW_SHM->me.car[i].can2 = RT_EOK;
+            pKW_SHM->me.car[i].lost = RT_EOK;
+        }
+        
+        if(pKW_SHM->me.car[i].lost == RT_ERROR)
+        {
+            rt_memset(&ds.inBuf[64 + 8 * i], 0, 8);
+        }
+    }
 }
 
 
@@ -179,23 +317,8 @@ static void powerFlt_detect(void)
     ds.dc110v = GetPin(DC110V_DETECT);
     ds.dc5v = GetPin(DC5V_DETECT);
     
-    switch(ds.slotID)
-    {
-        case SLOT_ID_MCU_A:
-            ds.MCU[0].dc110v = ds.dc110v;
-            ds.MCU[0].dc5v = ds.dc5v;
-            break;
-        case SLOT_ID_MCU_B:
-            ds.MCU[1].dc110v = ds.dc110v;
-            ds.MCU[1].dc5v = ds.dc5v;
-            break;
-        case SLOT_ID_MCU_C:
-            ds.MCU[2].dc110v = ds.dc110v;
-            ds.MCU[2].dc5v = ds.dc5v;
-            break;
-        default:            
-            break;
-    }
+    ds.MCU[ds.slotID - SLOT_ID_MCU_A].dc110v = ds.dc110v;
+    ds.MCU[ds.slotID - SLOT_ID_MCU_A].dc5v = ds.dc5v;
     
     if(ds.MCU[0].dc110v == 0)
     {
@@ -262,90 +385,11 @@ static void powerFlt_detect(void)
 }
 
 
-
-static rt_err_t isVersionValid(void)
+static rt_err_t canNodeSts(void)
 {
     rt_err_t ret = RT_ERROR;
     
-    if(ds.carID == 0 || ds.carID == 3)
-    {
-        if(ds.mvb_Version != 0 && ds.can1_Version != 0 && ds.can2_Version != 0 && ds.etu_Version != 0
-            && ds.MCU[0].armVersion != 0 && ds.MCU[1].armVersion != 0 && ds.MCU[2].armVersion != 0
-            && ds.MCU[0].kwVersion != 0 && ds.MCU[1].kwVersion != 0 && ds.MCU[2].kwVersion != 0
-            && ds.DIO[0].version != 0 && ds.DIO[1].version != 0 && ds.DIO[2].version != 0
-            && ds.DIO[3].version != 0 && ds.DIO[4].version != 0 && ds.DIO[5].version != 0
-            && ds.DIO[6].version != 0 && ds.DIO[7].version != 0 && ds.DIO[8].version != 0
-            && ds.DIO[9].version != 0 && ds.DIO[10].version != 0 && ds.DIO[11].version != 0
-            && ds.DIO[12].version != 0 && ds.DIO[13].version != 0 && ds.DIO[14].version != 0
-            && ds.DIO[15].version != 0 && ds.DIO[16].version != 0 && ds.DIO[17].version != 0
-            && ds.DIO[18].version != 0 && ds.DIO[19].version != 0 && ds.DIO[20].version != 0
-            && ds.DIO[21].version != 0 && ds.DIO[22].version != 0 && ds.DIO[23].version != 0
-            && ds.DIO[24].version != 0 && ds.DIO[25].version != 0 && ds.DIO[26].version != 0)
-        {
-            ret = RT_EOK;
-        } 
-    }
-    else if(ds.carID == 1 || ds.carID == 2)
-    {
-        if(ds.can1_Version != 0 && ds.can2_Version != 0 && ds.etu_Version != 0
-            && ds.MCU[0].armVersion != 0 && ds.MCU[1].armVersion != 0 && ds.MCU[2].armVersion != 0
-            && ds.MCU[0].kwVersion != 0 && ds.MCU[1].kwVersion != 0 && ds.MCU[2].kwVersion != 0
-            && ds.DIO[0].version != 0 && ds.DIO[1].version != 0 && ds.DIO[2].version != 0
-            && ds.DIO[3].version != 0 && ds.DIO[4].version != 0 && ds.DIO[5].version != 0
-            && ds.DIO[6].version != 0 && ds.DIO[7].version != 0 && ds.DIO[8].version != 0)
-        {
-            ret = RT_EOK;
-        } 
-    }
-
-    return ret;
-}
-
-
-static void versionFlt_detect(void)
-{
-    uint32_t i = 0;
-    
-    if(ds.MCU[0].armVersion != ds.MCU[1].armVersion || ds.MCU[0].armVersion != ds.MCU[2].armVersion)
-    {
-        pKW_SHM->me.verFlt.mcuVer = RT_ERROR;
-    }
-    
-    if(ds.MCU[0].kwVersion != ds.MCU[1].kwVersion || ds.MCU[0].kwVersion != ds.MCU[2].kwVersion)
-    {
-        pKW_SHM->me.verFlt.kwVer = RT_ERROR;
-    }
-    
-    if(ds.carID == 0 || ds.carID == 3)
-    {
-        for(i = 1; i < 27; i++)
-        {
-            if(ds.DIO[0].version != ds.DIO[i].version)
-            {
-                pKW_SHM->me.verFlt.dioVer = RT_ERROR;
-                break;
-            }
-        }
-    }
-    else if(ds.carID == 1 || ds.carID == 2)
-    {
-        for(i = 1; i < 9; i++)
-        {
-            if(ds.DIO[0].version != ds.DIO[i].version)
-            {
-                pKW_SHM->me.verFlt.dioVer = RT_ERROR;
-                break;
-            }
-        }
-    }
-}
-
-
-static rt_err_t canNodeSts(void)
-{
-    rt_err_t ret;
-    
-    if(ds.carID == 0 || ds.carID == 3)
+    if(ds.carID == CAR_ID_MC1 || ds.carID == CAR_ID_MC2)
     {
         if(ds.DIO[0].flt.board == RT_ERROR || ds.DIO[1].flt.board == RT_ERROR || ds.DIO[2].flt.board == RT_ERROR ||
             ds.DIO[3].flt.board == RT_ERROR || ds.DIO[4].flt.board == RT_ERROR || ds.DIO[5].flt.board == RT_ERROR ||
@@ -365,7 +409,7 @@ static rt_err_t canNodeSts(void)
             ret = RT_EOK;
         }
     }
-    else if(ds.carID == 1 || ds.carID == 2)
+    else if(ds.carID == CAR_ID_TP1 || ds.carID == CAR_ID_TP2)
     {
         if(ds.DIO[0].flt.board == RT_ERROR || ds.DIO[1].flt.board == RT_ERROR || ds.DIO[2].flt.board == RT_ERROR ||
             ds.DIO[3].flt.board == RT_ERROR || ds.DIO[4].flt.board == RT_ERROR || ds.DIO[5].flt.board == RT_ERROR ||
@@ -379,10 +423,6 @@ static rt_err_t canNodeSts(void)
             ret = RT_EOK;
         }
     }
-    else
-    {
-        ret = RT_ERROR;
-    }
     
     return ret;
 }    
@@ -390,26 +430,36 @@ static rt_err_t canNodeSts(void)
 
 static void sys_thread_entry(void* parameter)
 {
-	static  rt_uint32_t  TimingDelay = 0;
+    static  rt_uint32_t  TimingDelay = 0;
     
-	rt_kprintf("\r\n+ BSP TASK INFO : BSP Task Init Success!\r\n");
+    rt_kprintf("\r\n+ BSP TASK INFO : BSP Task Init Success!\r\n");
 
-	for(;;)
-	{
-		//等待系统操作信号量
-		rt_sem_take(&sem_10ms, RT_WAITING_FOREVER);
+    for(;;)
+    {
+        //等待系统操作信号量
+        rt_sem_take(&sem_10ms, RT_WAITING_FOREVER);
 
-		TimingDelay++;
+        TimingDelay++;
 
 #if IWDG_EN
         IWDG_ReloadCounter();       // 复位软件狗
-		HwWDog_Feed();              // 复位硬件狗
+        HwWDog_Feed();              // 复位硬件狗
 #endif
         if(TimingDelay % 20 == 0)
-		{
+        {
+            pKW_SHM->me.lifeSignal++;
+            
             canNodeFlt_detect();
             
             powerFlt_detect();
+            
+            if(rt_tick_get() > 2000 && rt_tick_get() < 3000)
+            {
+                versionFlt_detect();
+            }
+            
+            rt_memcpy(pKW_SHM->me.inBuf, ds.inBuf, 14);
+            rt_memcpy(pKW_SHM->me.ouBuf, ds.ouBuf, 8);
             
             if(pKW_SHM->me.pwr.dc110v_a == RT_ERROR || pKW_SHM->me.pwr.dc5v_a == RT_ERROR
                 || pKW_SHM->me.pwr.dc110v_b == RT_ERROR || pKW_SHM->me.pwr.dc5v_b == RT_ERROR
@@ -452,11 +502,11 @@ static void sys_thread_entry(void* parameter)
         }
         
 
-		if(TimingDelay % 4 == 0)
-		{
-			System_Led_Logic(); // LED指示灯
-		}
-	}
+        if(TimingDelay % 4 == 0)
+        {
+            System_Led_Logic(); // LED指示灯
+        }
+    }
 }
 
 
@@ -466,7 +516,7 @@ static void Bsp_sysTask_Init(void)
     
     sem_10ms_init  = rt_sem_init(&sem_10ms, "Sem10ms", 1, RT_IPC_FLAG_FIFO);
 
-	ret = rt_thread_init(&sys_thread,
+    ret = rt_thread_init(&sys_thread,
             "BspSysTask",
             sys_thread_entry,
             RT_NULL,
@@ -492,9 +542,9 @@ void sem_10ms_Release(void)
 
 void System_bsptask_create(void)
 {
-	rt_kprintf("\r\n[*] System all task Init Start ...... \r\n");
-	rt_kprintf(" + \r\n");
-	rt_kprintf(" + \r\n");
+    rt_kprintf("\r\n[*] System all task Init Start ...... \r\n");
+    rt_kprintf(" + \r\n");
+    rt_kprintf(" + \r\n");
     
     console_services_init();
     
@@ -531,12 +581,12 @@ void System_bsptask_create(void)
 * Output         : None
 * Return         : The new state of RCC_FLAG (SET or RESET).
 *******************************************************************************/
-#define POR_RST			1
-#define PIN_RST			2
-#define LPW_RST			4
-#define WWDG_RST		8
-#define IWWDG_RST		16
-#define SFT_RST			32
+#define POR_RST         1
+#define PIN_RST         2
+#define LPW_RST         4
+#define WWDG_RST        8
+#define IWWDG_RST       16
+#define SFT_RST         32
 
 u8 Rst_RegInfo = 0;
 u32 Csr_register = 0 ;
@@ -592,28 +642,28 @@ void CheckSystemRst(uint32_t rccReg)
 
 void time_tick(void)
 {
-	rt_uint32_t tick = 0;
-	tick = rt_tick_get();
+    rt_uint32_t tick = 0;
+    tick = rt_tick_get();
 
-	rt_kprintf("the rt_tick is : %d\r\n", tick);
+    rt_kprintf("the rt_tick is : %d\r\n", tick);
 }
 
 void running_time(void)
 {
-	rt_uint8_t  hour = 0;
-	rt_uint8_t  min  = 0;
-	rt_uint8_t  sec  = 0;
-	rt_uint32_t tick = 0;
+    rt_uint8_t  hour = 0;
+    rt_uint8_t  min  = 0;
+    rt_uint8_t  sec  = 0;
+    rt_uint32_t tick = 0;
 
-	tick = rt_tick_get();
+    tick = rt_tick_get();
 
-	hour = (rt_uint8_t)(tick/3600000);
-	min  = (rt_uint8_t)((tick/60000)%60);
-	sec  = (rt_uint8_t)((tick/1000)%60);
+    hour = (rt_uint8_t)(tick/3600000);
+    min  = (rt_uint8_t)((tick/60000)%60);
+    sec  = (rt_uint8_t)((tick/1000)%60);
 
-	rt_kprintf("the system running total time is : %3d:",hour);
-	rt_kprintf("%02d:",min);
-	rt_kprintf("%02d\r\n",sec);
+    rt_kprintf("the system running total time is : %3d:",hour);
+    rt_kprintf("%02d:",min);
+    rt_kprintf("%02d\r\n",sec);
 }
 
 #include "finsh.h"

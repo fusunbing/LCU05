@@ -46,7 +46,7 @@ bool SHM_LIB::unload(ClrAppDomain* pAppDomain)
 }
 
 //extern "C" 
-volatile uint8 shared_memory[4096] = {0};
+volatile uint8 shared_memory[4096] = { 0 };
 
 // class SHM_LIB.SharedMemory1 implementation
 Void* __PInvoke__ SHM_LIB::SharedMemory1::GetMemPtr()

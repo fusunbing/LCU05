@@ -15,12 +15,7 @@
 #include "Bsp_systask.h"
 #include "userApp.h"
 
-
-
-
-
 static uint32_t _sysCoreClk;
-
 
 #if  IWDG_EN
 static void IWDG_Init(rt_uint8_t ReloadTime);
@@ -91,38 +86,6 @@ static void SysTick_Configuration(void)
 }
 
 
-static void SRAM_Test(void)
-{
-    unsigned char * p_extram = (unsigned char *)STM32_EXT_SRAM_BEGIN;
-    unsigned int temp;
-
-    rt_kprintf("\r\nmem testing....");
-    for(temp = 0; temp < (STM32_EXT_SRAM_END - STM32_EXT_SRAM_BEGIN); temp++)
-    {
-        *p_extram++ = (unsigned char)temp;
-    }
-
-    p_extram = (unsigned char *)STM32_EXT_SRAM_BEGIN;
-    for(temp = 0; temp < (STM32_EXT_SRAM_END - STM32_EXT_SRAM_BEGIN); temp++)
-    {
-        if( *p_extram++ != (unsigned char)temp )
-        {
-            while (1)
-            {
-                rt_kprintf("memtest fail @ %08Xsystem halt!!!!! \r\n", (unsigned int)p_extram);
-            }
-
-        }
-    }
-    rt_kprintf("\r\nmem test pass!!\r\n");
-
-    for(temp = 0; temp < (STM32_EXT_SRAM_END-STM32_EXT_SRAM_BEGIN); temp++)
-    {
-        *p_extram++ = 0;
-    }
-}
-
-
 void SysTick_Handler(void)
 {
 	/* enter interrupt */
@@ -140,99 +103,92 @@ static uint32_t clockSouc = 0;
 void rt_hw_board_init(void)
 {
     uint32_t rcc_reg, crystl;
-    
-	/* NAND_IDTypeDef NAND_ID */
-	DBGMCU_APB1PeriphConfig(DBGMCU_IWDG_STOP, ENABLE);
-    
+
+    /* NAND_IDTypeDef NAND_ID */
+    DBGMCU_APB1PeriphConfig(DBGMCU_IWDG_STOP, ENABLE);
+
 #if  IWDG_EN
-	/* init IWDG */
-	IWDG_Init(20);
+    /* init IWDG */
+    IWDG_Init(20);
 #endif
+
+    /* Get the ystem reset flag */
+    rcc_reg = RCC->CSR;
     
-	/* Get the ystem reset flag */
-	rcc_reg = RCC->CSR;
+    /* NVIC Configuration */
+    NVIC_Configuration();
     
-	/* NVIC Configuration */
-	NVIC_Configuration();
+    /* Configure the SysTick */
+    SysTick_Configuration();
     
-	/* Configure the SysTick */
-	SysTick_Configuration();
-    
-	/* Configure the Console */
+    /* Configure the Console */
     stm32_hw_usart_init();
     
 #ifdef RT_USING_CONSOLE
-	rt_console_set_device(CONSOLE_DEVICE);
+    rt_console_set_device(CONSOLE_DEVICE);
 #endif
 
-	//  系统指示灯初始化
-	System_Led_Init();
+    //  系统指示灯初始化
+    System_Led_Init();
     
     //系统slot ID、110V检测、5V检测gpio初始化
     stmPinsInit();
 
     rt_kprintf("\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n");
     
-	// MCU信息
-	rt_kprintf("\r\n\r\n+++++++++++++++++++++++++++++++++++++++\r\n");
-	rt_kprintf        ("+            SystemInit \r\n");
-	rt_kprintf        ("+                       \r\n");
-	rt_kprintf        ("+ MCU           : STM32F407  \r\n");
+    // MCU信息
+    rt_kprintf("\r\n\r\n+++++++++++++++++++++++++++++++++++++++\r\n");
+    rt_kprintf        ("+            SystemInit \r\n");
+    rt_kprintf        ("+                       \r\n");
+    rt_kprintf        ("+ MCU           : STM32F407  \r\n");
     
     
     crystl = ((RCC->CR & RCC_CR_HSERDY) > 0) ? 1: 0;
     clockSouc = crystl;
 
-	if(crystl != RESET)
-	{
-		rt_kprintf        ("+ Clock source  : HSE  \r\n");
-	}
-	else
-	{
-		rt_kprintf        ("+ Clock source  : HSI  \r\n");
-	}
-    
-	rt_kprintf("+ SPEED         : %d MHz  \r\n", (_sysCoreClk /1000000));
-	rt_kprintf("+ OS            : RT Thread Operating System\r\n");
-	rt_kprintf("+ OS Ver        : %d.%d.%d\r\n", RT_VERSION, RT_SUBVERSION, RT_REVISION);
-	rt_kprintf("+ BspVer        : %d.%d\r\n", MAJOR_VERSION, MAJOR_VERSION);
-	rt_kprintf("+ BoardType     : MCU\r\n");
-	rt_kprintf("+ COPYRIGHT     : Tongye Team \r\n");
-	rt_kprintf("+++++++++++++++++++++++++++++++++++++++\r\n");
-	rt_kprintf("\r\n[*] BSP Module Init Start ...... \r\n");
-	rt_kprintf(" + \r\n");
+    if(crystl != RESET)
+    {
+        rt_kprintf        ("+ Clock source  : HSE  \r\n");
+    }
+    else
+    {
+        rt_kprintf        ("+ Clock source  : HSI  \r\n");
+    }
+
+    rt_kprintf("+ SPEED         : %d MHz  \r\n", (_sysCoreClk /1000000));
+    rt_kprintf("+ OS            : RT Thread Operating System\r\n");
+    rt_kprintf("+ OS Ver        : %d.%d.%d\r\n", RT_VERSION, RT_SUBVERSION, RT_REVISION);
+    rt_kprintf("+ BoardType     : MCU\r\n");
+    rt_kprintf("+ COPYRIGHT     : Tongye Team \r\n");
+    rt_kprintf("+++++++++++++++++++++++++++++++++++++++\r\n");
+    rt_kprintf("\r\n[*] BSP Module Init Start ...... \r\n");
+    rt_kprintf(" + \r\n");
     rt_kprintf(" + \r\n");
 
-    
     // SRAM FSMC模块初始化
     Bsp_fsmc_init();
     rt_kprintf("\r\n+ FSMC INFO: FSMC Init success!\r\n");
     rt_kprintf("\r\n+ SRAM INFO: SRAM Init success!\r\n");
-    SRAM_Test();
-	
-	userApp_init();
+    //SRAM_Test();
 
-	// Backup SRAM 模块初始化
-	System_hw_bakramInit();
-    
-    
-	// rtc模块初始化
-	rt_hw_rtc_init();
-	rt_kprintf("\r\n+ RTC INFO: RTC Module Init success!\r\n");
-    
+    userApp_init();
+
+    // Backup SRAM 模块初始化
+    System_hw_bakramInit();
+
+    // rtc模块初始化
+    rt_hw_rtc_init();
+    rt_kprintf("\r\n+ RTC INFO: RTC Module Init success!\r\n");
+
     //硬件看门狗初始化
     HwWDog_Init();
-    
-	//-----------------------------------------------------------------------------------------
-	// CPU占用率计算模块初始化
-	//-----------------------------------------------------------------------------------------
-	cpu_usage_init();
-	rt_kprintf("\r\n+ CPU USAGE INFO: Can use console see about the cpu use perecent!\r\n");
-    
-	//-----------------------------------------------------------------------------------------
-	// System Reset Source
-	//-----------------------------------------------------------------------------------------
-	CheckSystemRst(rcc_reg);
+
+    // CPU占用率计算模块初始化
+    cpu_usage_init();
+    rt_kprintf("\r\n+ CPU USAGE INFO: Can use console see about the cpu use perecent!\r\n");
+
+    // System Reset Source
+    CheckSystemRst(rcc_reg);
 }
 
 

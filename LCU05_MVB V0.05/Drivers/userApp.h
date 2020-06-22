@@ -13,6 +13,8 @@ extern "C" {
 	
 #include "Bsp_led.h"
 
+
+#define MVB_VERSION         (5)
    
 #define	SLOT_ID_MVB			(1)
 #define	SLOT_ID_CAN			(2)
@@ -61,8 +63,10 @@ typedef struct
     uint8_t boardType;    
     uint8_t slotID;
     uint8_t carID;
+    
+    uint32_t mvbCnt;
 
-    MVB_PORT_DATA_STU mvb_port[32];    
+    MVB_PORT_DATA_STU mvb_port[32];
 }DS_STU, *PDS_STU;
 
 

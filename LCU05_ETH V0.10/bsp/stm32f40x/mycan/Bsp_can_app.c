@@ -13,7 +13,7 @@ typedef struct
     uint32_t  canId;
     uint8_t   canData[8];
     uint8_t   canPort;
-    uint8_t   dlc;
+    uint8_t   DLC;
     uint8_t   res1;
     uint8_t   res2;
 }CanSniffNode_TypeDef;
@@ -27,7 +27,7 @@ static void CanSlave_SniffSave(CAN_RX_DATA_RAM *rBuff)
     /* 送交日志记录处理 */
     canSnSaveFrame.canId = rBuff->rxMsg.ExtId;
     canSnSaveFrame.canPort = rBuff->parent.CanPort;
-    canSnSaveFrame.dlc = rBuff->rxMsg.DLC;
+    canSnSaveFrame.DLC = rBuff->rxMsg.DLC;
     canSnSaveFrame.canData[0] = rBuff->rxMsg.Data[0];
     canSnSaveFrame.canData[1] = rBuff->rxMsg.Data[1];
     canSnSaveFrame.canData[2] = rBuff->rxMsg.Data[2];

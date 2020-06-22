@@ -14,23 +14,32 @@ extern "C" {
 
 
 //软件版本号
-#define MAJOR_VERSION		(0) //主版本号
-#define MINOR_VERSION		(5) //次版本号
+#define MCU_VERSION         (5)     //MCU板底层软件版本号
+#define KW_VERSION          (3)     //MCU板KW软件版本号
+#define DIO_VERSION         (5)     //DIO板底层软件版本号
 
-#define	SLOT_ID_MVB			(1)
-#define	SLOT_ID_CAN			(2)
-#define	SLOT_ID_ETU			(3)
-#define	SLOT_ID_MCU_A		(4)
-#define	SLOT_ID_MCU_B		(5)
-#define	SLOT_ID_MCU_C		(6)
-#define	SLOT_ID_IO_MIN		(7)
-#define	SLOT_ID_IO_MAX		(33)
+#define	SLOT_ID_MVB         (1)
+#define	SLOT_ID_CAN         (2)
+#define	SLOT_ID_ETU         (3)
+#define	SLOT_ID_MCU_A       (4)
+#define	SLOT_ID_MCU_B       (5)
+#define	SLOT_ID_MCU_C       (6)
+#define	SLOT_ID_IO_MIN      (7)
+#define	SLOT_ID_IO_MAX      (33)
 
-#define	BOARD_TYPE_ID_MVB	(1)
-#define	BOARD_TYPE_ID_MCU	(2)
-#define	BOARD_TYPE_ID_CAN	(3)
-#define	BOARD_TYPE_ID_ETU	(4)
-#define	BOARD_TYPE_ID_IO	(5)
+#define	BOARD_TYPE_ID_MVB   (1)
+#define	BOARD_TYPE_ID_MCU   (2)
+#define	BOARD_TYPE_ID_CAN   (3)
+#define	BOARD_TYPE_ID_ETU   (4)
+#define	BOARD_TYPE_ID_IO    (5)
+
+#define	CAR_ID_MC1          (0)     //MC1车节号
+#define	CAR_ID_TP1          (1)     //TP1车节号
+#define	CAR_ID_TP2          (2)     //TP2车节号
+#define	CAR_ID_MC2          (3)     //MC2车节号
+
+#define DIO_CNT_6U          (27)    //6U机箱DIO板数量
+#define DIO_CNT_3U          (9)     //3U机箱DIO板数量
 
 #define BOARD_IN_COUNT      (12)
 #define BOARD_OU_COUNT      (7)
@@ -76,7 +85,7 @@ typedef struct
     uint8_t ser             :1;     //轻微故障
     uint8_t med             :1;     //中等故障
     uint8_t sli             :1;     //严重故障
-    uint8_t res1            :5;
+    uint8_t res             :5;
 }LCU_FLT_LEVEL, *PLCU_FLT_LEVEL;
 
 
@@ -95,7 +104,9 @@ typedef struct
     uint8_t can1            :1;     //MVB板CAN1故障
     uint8_t can2            :1;     //MVB板CAN2故障
     uint8_t lost            :1;     //MVB板丢失
-    uint8_t res             :4;
+    uint8_t mc1             :1;     //MC1车TCMS生命信号丢失
+    uint8_t mc2             :1;     //MC2车TCMS生命信号丢失
+    uint8_t res             :2;
 }BOARD_MVB_FLT, *PBOARD_MVB_FLT;
 
 
@@ -129,7 +140,9 @@ typedef struct
     uint8_t can1            :1;     //MCU板CAN1故障
     uint8_t can2            :1;     //MCU板CAN2故障
     uint8_t lost            :1;     //MCU板丢失
-    uint8_t res             :4;
+    uint8_t logic           :1;     //MCU板逻辑运算错误
+    uint8_t remoteIn        :1;     //MCU板列车线信号错误
+    uint8_t res             :2;
 }BOARD_MCU_FLT, *PBOARD_MCU_FLT;
 
 
@@ -143,6 +156,15 @@ typedef struct
     uint8_t lost            :1;     //DIO板丢失
     uint8_t res             :2;
 }BOARD_DIO_FLT, *PBOARD_DIO_FLT;
+
+
+typedef struct
+{
+    uint8_t can1            :1;     //机箱CAN1故障
+    uint8_t can2            :1;     //机箱CAN2故障
+    uint8_t lost            :1;     //机箱丢失
+    uint8_t res             :5;
+}BOX_FLT, *PBOX_FLT;
 
 
 typedef struct
@@ -176,7 +198,7 @@ typedef struct
     uint8_t inBuf[14];
     uint8_t ouBuf[8];
     
-    uint32_t res;
+    BOX_FLT car[4];
 }LCU_STS_STU, *PLCU_STS_STU;
 
 
@@ -219,10 +241,10 @@ typedef struct
     BOARD_DIO_FLT flt;
     uint8_t res;
     
-	uint8_t in[2];
+    uint8_t in[2];
     uint8_t ou;
     uint8_t fb[2];
-	uint8_t inFlt[2];
+    uint8_t inFlt[2];
     uint8_t ouFlt;
     
     uint32_t *Bits_in;
@@ -304,7 +326,7 @@ extern PKW_SHM_STU pKW_SHM;
 void userApp_init(void);
 void Input_KW(uint8_t *buf);
 void KW_Output(uint8_t *buf);
-
+void remoteIn_2oo3(void);
 
 #ifdef __cplusplus
 }

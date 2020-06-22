@@ -292,7 +292,7 @@ void Can_Cycle_Service(void)
 {
     rt_thread_delay(ds.DIO[0].slotID);
     
-    if(rt_tick_get() > 3000)
+    if(rt_tick_get() > 2000)
     {
         //canπ ’œºÏ≤‚
         CanNode_Update();

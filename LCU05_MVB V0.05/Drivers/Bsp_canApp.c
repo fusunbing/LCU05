@@ -223,7 +223,7 @@ static void canSend_PowerOn(void)
     
     info.id.funID = CAN_FUN_POWER_ON;
     info.id.src = ds.slotID;
-    info.id.dst = CAN_ADDR_MCU_GROUP;
+    info.id.dst = CAN_ADDR_BROADCAST;
     info.id.pri = CAN_PRI_L;
     info.id.res = 0;
 
@@ -243,7 +243,7 @@ static void canSend_PowerOn(void)
 
 void canApp_serve(void)
 {
-    if(rt_tick_get() < 3000)
+    if(rt_tick_get() < 2000)
     {
         canSend_PowerOn();
     }

@@ -49,7 +49,7 @@ static void DS_BitBand_Init(void)
 
 void userApp_init(void)
 {
-	uint32_t i;	
+    uint32_t i;
     BYTE_TO_BIT id = {0};
     
     pKW_SHM = (PKW_SHM_STU)shared_memory;
@@ -80,9 +80,7 @@ void userApp_init(void)
     }while(ds.slotID < SLOT_ID_MCU_A && ds.slotID > SLOT_ID_MCU_C);
     
     
-    ds.MCU[ds.slotID - 4].armVersion = MINOR_VERSION;
-    ds.MCU[ds.slotID - 4].kwVersion = 3;
-
+    ds.MCU[ds.slotID - 4].armVersion = MCU_VERSION;
     
     do
     {
@@ -97,16 +95,16 @@ void userApp_init(void)
         switch(id.value)
         {
             case 3:
-                ds.carID = 0; 
+                ds.carID = CAR_ID_MC1; 
                 break;
             case 5:
-                ds.carID = 1; 
+                ds.carID = CAR_ID_TP1; 
                 break;
             case 6:
-                ds.carID = 2; 
+                ds.carID = CAR_ID_TP2; 
                 break;
             case 9:
-                ds.carID = 3; 
+                ds.carID = CAR_ID_MC2; 
                 break;
             default:
                 ds.carID = 0xFF; 
@@ -139,7 +137,7 @@ static void input_2oo3(void)
 }
 
 
-static void remoteIn_2oo3(void)
+void remoteIn_2oo3(void)
 {
     uint32_t i;
     uint32_t offset;
@@ -174,14 +172,20 @@ void KW_Output(uint8_t *buf)
 {
     if(rt_memcmp(ds.ouBuf, buf, 8) != 0)
     {
-        rt_memcpy(ds.ouBuf, buf, 8);
-        can_send_output();
+        if(ds.MCU[ds.slotID - SLOT_ID_MCU_A].flt.logic == RT_EOK)
+        {
+            rt_memcpy(ds.ouBuf, buf, 8);
+            can_send_output();
+        }
     }
     
     if(rt_memcmp(&ds.ouBuf[64], &buf[64], 8) != 0)
     {
-        rt_memcpy(&ds.ouBuf[64], &buf[64], 8);
-        can_send_remoteIn();
+        if(ds.MCU[ds.slotID - SLOT_ID_MCU_A].flt.remoteIn == RT_EOK)
+        {
+            rt_memcpy(&ds.ouBuf[64], &buf[64], 8);
+            can_send_remoteIn();
+        }
     }
 }
 

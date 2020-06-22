@@ -366,7 +366,7 @@ void mvb_sts_data(uint8_t* buf)
     mvb_sts.sw9 = (uint16_t)ds.Bits_ouBuf[62];
     
     mvb_sts.lifesign = lifesign++;
-    mvb_sts.mcuVer = (MAJOR_VERSION << 8) + MINOR_VERSION;
+    mvb_sts.mcuVer = MCU_VERSION;
     
     rt_memcpy(buf, &mvb_sts, 32);
 }
