@@ -149,7 +149,6 @@ void rt_hw_board_init(void)
 	rt_kprintf("+ SPEED         : %d MHz  \r\n", (sysCoreClk /1000000));
 	rt_kprintf("+ OS            : RT Thread Operating System\r\n");
 	rt_kprintf("+ OS Ver        : %d.%d.%d\r\n", RT_VERSION, RT_SUBVERSION, RT_REVISION);
-	rt_kprintf("+ BspVer        : %d\r\n", SOFTWARE_VERSION);
 	rt_kprintf("+ COPYRIGHT     : Tongye Team\r\n");
 	rt_kprintf("+++++++++++++++++++++++++++++++++++++++\r\n");
 	rt_kprintf("\r\n[*] BSP Module Init Start ...... \r\n");

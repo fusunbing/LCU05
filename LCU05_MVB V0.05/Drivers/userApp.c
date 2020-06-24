@@ -9,7 +9,7 @@ DS_STU ds = { 0 };
 
 void userApp_init(void)
 {
-	uint32_t i;	
+    uint32_t i;
     BYTE_TO_BIT id = {0};
 
     do
@@ -55,7 +55,7 @@ void userApp_init(void)
                 break;  
         }
     }while(ds.carID > 3);
-	
+
 //    do
 //    {
 //        id.Bits.bit0 = GetPin(BOARD_TYPE_ID1);

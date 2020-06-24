@@ -10,27 +10,33 @@ extern "C" {
     
 #include <rtthread.h>
 #include "stm32f4xx.h"
-	
+
 #include "Bsp_led.h"
 
 
 #define MVB_VERSION         (5)
    
-#define	SLOT_ID_MVB			(1)
-#define	SLOT_ID_CAN			(2)
-#define	SLOT_ID_ETU			(3)
-#define	SLOT_ID_MCU_A		(4)
-#define	SLOT_ID_MCU_B		(5)
-#define	SLOT_ID_MCU_C		(6)
-#define	SLOT_ID_IO_MIN		(7)
-#define	SLOT_ID_IO_MAX		(33)
+#define SLOT_ID_MVB         (1)
+#define SLOT_ID_CAN         (2)
+#define SLOT_ID_ETU         (3)
+#define SLOT_ID_MCU_A       (4)
+#define SLOT_ID_MCU_B       (5)
+#define SLOT_ID_MCU_C       (6)
+#define SLOT_ID_IO_MIN      (7)
+#define SLOT_ID_IO_MAX      (33)
 
-#define	BOARD_TYPE_ID_MVB	(1)
-#define	BOARD_TYPE_ID_MCU	(2)
-#define	BOARD_TYPE_ID_CAN	(3)
-#define	BOARD_TYPE_ID_ETU	(4)
-#define	BOARD_TYPE_ID_IO	(5)
+#define BOARD_TYPE_ID_MVB   (1)
+#define BOARD_TYPE_ID_MCU   (2)
+#define BOARD_TYPE_ID_CAN   (3)
+#define BOARD_TYPE_ID_ETU   (4)
+#define BOARD_TYPE_ID_IO    (5)
 
+#define CAR_ID_MC1          (0)     //MC1车节号
+#define CAR_ID_TP1          (1)     //TP1车节号
+#define CAR_ID_TP2          (2)     //TP2车节号
+#define CAR_ID_MC2          (3)     //MC2车节号
+
+#define CAR_NUM             (4)
 
 typedef union
 {
@@ -53,8 +59,17 @@ typedef union
 
 typedef struct
 {
-	uint8_t data[32];      //端口索引
+    uint8_t data[32];      //端口索引
 }MVB_PORT_DATA_STU, *PMVB_PORT_DATA_STU;
+
+
+typedef struct
+{
+    uint8_t can1            :1;     //机箱CAN1故障
+    uint8_t can2            :1;     //机箱CAN2故障
+    uint8_t lost            :1;     //机箱丢失
+    uint8_t res             :5;
+}CAR_FLT_STU, *PCAR_FLT_STU;
 
 
 typedef struct 
@@ -65,6 +80,8 @@ typedef struct
     uint8_t carID;
     
     uint32_t mvbCnt;
+    
+    CAR_FLT_STU car[CAR_NUM];
 
     MVB_PORT_DATA_STU mvb_port[32];
 }DS_STU, *PDS_STU;

@@ -181,8 +181,8 @@ extern void set_time(rt_uint32_t hour, rt_uint32_t minute, rt_uint32_t second);
 
 static rt_err_t isRtc_Valid(uint8_t year, uint8_t mon,uint8_t day, uint8_t hour,uint8_t min, uint8_t sec)
 {
-    if ((year < 20 || year > 99) || (mon == 0 && mon > 12) || (day == 0 && day > 31)
-        || hour > 59 || min > 59 || sec > 59)
+    if (year < 20 || year > 99 || mon == 0 || mon > 12 || day == 0 || day > 31
+        || hour > 23 || min > 59 || sec > 59)
     {
         return RT_ERROR;
     }
@@ -246,19 +246,17 @@ static void can_lcu_sts_handle(CanRxMsg* pMsg)
     CAN_EXTID_INFO info = { 0 };
     uint32_t offset = 0;
     uint32_t carID = 0;
-    
-//    static uint16_t mc1_lifesign = 0;
-//    static uint16_t mc2_lifesign = 0;
-//    static uint32_t mc1_cnt = 0;
-//    static uint32_t mc2_cnt = 0;
-    
+
     info.value = pMsg->ExtId;
     
     if(info.id.dst == CAN_ADDR_BROADCAST && info.id.src == SLOT_ID_CAN && pMsg->DLC == 8)
     {
         carID = (info.id.funID - 0x80) / 16;
         offset = info.id.funID % 16;
-        
+
+        ExtCanNode_Clear(info.id.port, carID);
+        ExtCanNode_Clear(info.id.port, ds.carID);
+
         if(offset == 0)
         {
             rt_memcpy(&ds.inBuf[carID * 8 + 64], pMsg->Data, pMsg->DLC);
@@ -321,7 +319,6 @@ void can_rx_serve(CanRxMsg* pMsg)
     
     CanNode_Clear(info.id.port, info.id.src);
     CanNode_Clear(info.id.port, ds.slotID);
-    ExtCanNode_Clear(info.id.port, info.id.funID);
     
     //如果接收到源地址和自己的地址一致，重新读取slot_id
     if(info.id.src == ds.slotID)

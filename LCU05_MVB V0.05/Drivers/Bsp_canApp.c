@@ -7,6 +7,53 @@
 
 #define CAN_SEND_TRYTIMES   (3)
 
+#define FLT_TIMEOUT         (10)
+
+static uint32_t can1_cnt[CAR_NUM] = { 0 };
+static uint32_t can2_cnt[CAR_NUM] = { 0 };
+
+static void CanNode_Update(void)
+{
+    uint32_t i;
+
+    for(i = 0; i < CAR_NUM; i++)
+    {
+        can1_cnt[i]++;
+        can2_cnt[i]++;
+        
+        ds.car[i].can1 = (can1_cnt[i] > FLT_TIMEOUT) ? RT_ERROR : RT_EOK;
+        ds.car[i].can2 = (can2_cnt[i] > FLT_TIMEOUT) ? RT_ERROR : RT_EOK;
+        ds.car[i].lost = (ds.car[i].can1 == RT_ERROR && ds.car[i].can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+        
+        if(ds.car[i].lost == RT_ERROR)
+        {
+            ds.mvb_port[i + 2].data[0] |= 0x04;     //严重故障
+            ds.mvb_port[i + 2].data[5] |= 0x10;     //CAN网关板前面板CAN1故障
+            ds.mvb_port[i + 2].data[5] |= 0x20;     //CAN网关板前面板CAN2故障
+            ds.mvb_port[i + 2].data[4] |= 0x10;     //设备丢失
+        }
+    }
+}
+
+
+static void CanNode_Clear(uint32_t port, uint32_t carID)
+{
+    if(carID < CAR_NUM)
+    {
+        switch(port)
+        {
+            case 1:                
+                can1_cnt[carID] = 0;
+                break;
+            case 2:
+                can2_cnt[carID] = 0;
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 
 static void can_rx_handle(CAN_RX_DATA_RAM * pDate)
 {
@@ -23,6 +70,8 @@ static void can_rx_handle(CAN_RX_DATA_RAM * pDate)
         {
             carID = (info.id.funID - 0x80) / 16;
             offset = info.id.funID % 16;
+            
+            CanNode_Clear(pDate->canPort, carID);
             
             if(offset > 0 && offset < 5)
             {
@@ -205,11 +254,11 @@ static void canSend_Lifesign(void)
     txMsg.Data[0] = ds.mvb_port[0].data[0];     //生命信号H
     txMsg.Data[1] = ds.mvb_port[0].data[1];     //生命信号L
     txMsg.Data[2] = ds.mvb_port[1].data[2];     //年（数值范围0x00～0x63对应2000年～2099年）
-	txMsg.Data[3] = ds.mvb_port[1].data[3];     //月（数值范围0x01～0x0C对应   1月～12月  ） 
-	txMsg.Data[4] = ds.mvb_port[1].data[4];	    //日（数值范围0x01～0x1F对应   1日～31日  ）
+    txMsg.Data[3] = ds.mvb_port[1].data[3];     //月（数值范围0x01～0x0C对应   1月～12月  ） 
+    txMsg.Data[4] = ds.mvb_port[1].data[4];	    //日（数值范围0x01～0x1F对应   1日～31日  ）
     txMsg.Data[5] = ds.mvb_port[1].data[5];     //时（数值范围0x00～0x17对应   0时～23时  ）
-	txMsg.Data[6] = ds.mvb_port[1].data[6];     //分（数值范围0x00～0x3B对应   0分～59分  ）
-	txMsg.Data[7] = ds.mvb_port[1].data[7];	    //秒（数值范围0x00～0x3B对应   0秒～59秒  ）
+    txMsg.Data[6] = ds.mvb_port[1].data[6];     //分（数值范围0x00～0x3B对应   0分～59分  ）
+    txMsg.Data[7] = ds.mvb_port[1].data[7];	    //秒（数值范围0x00～0x3B对应   0秒～59秒  ）
     
     Can1Q_Push_Tx_Msg(1, rt_tick_get(), &txMsg);
     Can2Q_Push_Tx_Msg(2, rt_tick_get(), &txMsg);
@@ -249,6 +298,7 @@ void canApp_serve(void)
     }
     else
     {
+        CanNode_Update();
         canSend_Lifesign();
     }
 

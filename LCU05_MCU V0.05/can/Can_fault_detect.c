@@ -1,6 +1,7 @@
 
 
 #include "Can_fault_detect.h"
+#include "userApp.h"
 
 
 #define NODES_MAX       (40)
@@ -54,12 +55,8 @@ void CanNode_Clear(uint32_t port, uint32_t src)
 
 
 
-void ExtCanNode_Clear(uint32_t port, uint32_t funID)
+void ExtCanNode_Clear(uint32_t port, uint32_t carID)
 {
-    uint32_t carID;
-
-    carID = (funID - 0x80) / 16;
-    
     if(carID < CAR_NUM)
     {
         switch(port)

@@ -26,45 +26,6 @@ static struct rt_semaphore sem_10ms;
 static rt_err_t sem_10ms_init;
 
 
-static rt_err_t isVersionValid(void)
-{
-    rt_err_t ret = RT_ERROR;
-    
-    if(ds.carID == CAR_ID_MC1 || ds.carID == CAR_ID_MC2)
-    {
-        if(ds.mvb_Version != 0 && ds.can1_Version != 0 && ds.can2_Version != 0 && ds.etu_Version != 0
-            && ds.MCU[0].armVersion != 0 && ds.MCU[1].armVersion != 0 && ds.MCU[2].armVersion != 0
-            && ds.MCU[0].kwVersion != 0 && ds.MCU[1].kwVersion != 0 && ds.MCU[2].kwVersion != 0
-            && ds.DIO[0].version != 0 && ds.DIO[1].version != 0 && ds.DIO[2].version != 0
-            && ds.DIO[3].version != 0 && ds.DIO[4].version != 0 && ds.DIO[5].version != 0
-            && ds.DIO[6].version != 0 && ds.DIO[7].version != 0 && ds.DIO[8].version != 0
-            && ds.DIO[9].version != 0 && ds.DIO[10].version != 0 && ds.DIO[11].version != 0
-            && ds.DIO[12].version != 0 && ds.DIO[13].version != 0 && ds.DIO[14].version != 0
-            && ds.DIO[15].version != 0 && ds.DIO[16].version != 0 && ds.DIO[17].version != 0
-            && ds.DIO[18].version != 0 && ds.DIO[19].version != 0 && ds.DIO[20].version != 0
-            && ds.DIO[21].version != 0 && ds.DIO[22].version != 0 && ds.DIO[23].version != 0
-            && ds.DIO[24].version != 0 && ds.DIO[25].version != 0 && ds.DIO[26].version != 0)
-        {
-            ret = RT_EOK;
-        } 
-    }
-    else if(ds.carID == CAR_ID_TP1 || ds.carID == CAR_ID_TP2)
-    {
-        if(ds.can1_Version != 0 && ds.can2_Version != 0 && ds.etu_Version != 0
-            && ds.MCU[0].armVersion != 0 && ds.MCU[1].armVersion != 0 && ds.MCU[2].armVersion != 0
-            && ds.MCU[0].kwVersion != 0 && ds.MCU[1].kwVersion != 0 && ds.MCU[2].kwVersion != 0
-            && ds.DIO[0].version != 0 && ds.DIO[1].version != 0 && ds.DIO[2].version != 0
-            && ds.DIO[3].version != 0 && ds.DIO[4].version != 0 && ds.DIO[5].version != 0
-            && ds.DIO[6].version != 0 && ds.DIO[7].version != 0 && ds.DIO[8].version != 0)
-        {
-            ret = RT_EOK;
-        } 
-    }
-
-    return ret;
-}
-
-
 static void versionFlt_detect(void)
 {
     uint32_t i = 0;
@@ -241,9 +202,7 @@ static void canNodeFlt_detect(void)
     
     if(pKW_SHM->me.can.can1 != RT_EOK
         || pKW_SHM->me.can.can2 != RT_EOK
-        || pKW_SHM->me.can.lost != RT_EOK
-        || pKW_SHM->me.can.ext_can1 != RT_EOK
-        || pKW_SHM->me.can.ext_can2 != RT_EOK)
+        || pKW_SHM->me.can.lost != RT_EOK)
     {
         pKW_SHM->me.can.board = RT_ERROR;
     }
@@ -284,19 +243,10 @@ static void canNodeFlt_detect(void)
     
     for(i = 0; i < 4; i++)
     {
-        if(i != ds.carID)
-        {
-            pKW_SHM->me.car[i].can1 = Get_ExtCanSts(1, i);
-            pKW_SHM->me.car[i].can2 = Get_ExtCanSts(2, i);
-            pKW_SHM->me.car[i].lost = (pKW_SHM->me.car[i].can1 == RT_ERROR && pKW_SHM->me.car[i].can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
-        }
-        else
-        {
-            pKW_SHM->me.car[i].can1 = RT_EOK;
-            pKW_SHM->me.car[i].can2 = RT_EOK;
-            pKW_SHM->me.car[i].lost = RT_EOK;
-        }
-        
+        pKW_SHM->me.car[i].can1 = Get_ExtCanSts(1, i);
+        pKW_SHM->me.car[i].can2 = Get_ExtCanSts(2, i);
+        pKW_SHM->me.car[i].lost = (pKW_SHM->me.car[i].can1 == RT_ERROR && pKW_SHM->me.car[i].can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
+
         if(pKW_SHM->me.car[i].lost == RT_ERROR)
         {
             rt_memset(&ds.inBuf[64 + 8 * i], 0, 8);
@@ -562,83 +512,6 @@ void System_bsptask_create(void)
     Bsp_eclrTask_Init();
 }
 
-
-/*******************************************************************************
-* Function Name  : CheckSystemRst
-* Description    : Checks which reset happened
-* Input          : - RCC_FLAG: specifies the flag to check.
-*                    This parameter can be one of the following values:
-*                       - RCC_FLAG_PINRST: Pin reset
-*                       - RCC_FLAG_PORRST: POR/PDR reset
-*                       - RCC_FLAG_SFTRST: Software reset
-*                       - RCC_FLAG_IWDGRST: Independent Watchdog reset
-*                       - RCC_FLAG_WWDGRST: Window Watchdog reset
-*                       - RCC_FLAG_LPWRRST: Low Power reset
-*当上电复位时候，RCC->CSR的值为0x24000000，即RCC_FLAG_PINRST和RCC_FLAG_PORRST置位。
-当Iwdg复位时候，发现同时RCC->CSR的值为0x24000000，即RCC_FLAG_PINRST和RCC_FLAG_IWDGRST
-同时置位，但是检测波形并没有外部管脚复位信号。因此在处理复位原因的时候，需要注意这些细
-节。
-* Output         : None
-* Return         : The new state of RCC_FLAG (SET or RESET).
-*******************************************************************************/
-#define POR_RST         1
-#define PIN_RST         2
-#define LPW_RST         4
-#define WWDG_RST        8
-#define IWWDG_RST       16
-#define SFT_RST         32
-
-u8 Rst_RegInfo = 0;
-u32 Csr_register = 0 ;
-u32 Csr_register1 = 0 ;
-void CheckSystemRst(uint32_t rccReg)
-{
-	Csr_register = RCC->CSR ;
-	/* Check if the system has resumed from each reset */
-	if (RCC_GetFlagStatus(RCC_FLAG_PORRST) != RESET)
-	{	
-		Rst_RegInfo = POR_RST;
-	}
-	if (RCC_GetFlagStatus(RCC_FLAG_PINRST) != RESET)
-	{		
-		Rst_RegInfo |= PIN_RST;
-	}
-	if (RCC_GetFlagStatus(RCC_FLAG_LPWRRST) != RESET)
-	{	
-		Rst_RegInfo |= LPW_RST;		
-	}
-	if (RCC_GetFlagStatus(RCC_FLAG_WWDGRST) != RESET)
-	{		
-		Rst_RegInfo |= WWDG_RST;
-	}
-	if (RCC_GetFlagStatus(RCC_FLAG_IWDGRST) != RESET)
-	{
-		Rst_RegInfo |= IWWDG_RST;	
-	}
-	if (RCC_GetFlagStatus(RCC_FLAG_SFTRST) != RESET)
-	{		
-		Rst_RegInfo |= SFT_RST;		
-	}
-
-	/* Clear reset flags */
-	RCC_ClearFlag();
-
-	Csr_register1 = RCC->CSR ;
-
-	rt_kprintf("\r\n+ SysRST Info: ");
-	rt_kprintf("\r\n  Csr_register: 0x%x", Csr_register);
-	rt_kprintf("\r\n  rst_semphore: 0x%x", Rst_RegInfo);
-
-	rt_kprintf("\r\n+ SYS_RST: ");
-	rt_kprintf("\r\n +    BOR: %d", ((rccReg >> 25) & 0x1) > 0 ? 1: 0);
-	rt_kprintf("\r\n +    PIN: %d", ((rccReg >> 26) & 0x1) > 0 ? 1: 0);
-	rt_kprintf("\r\n +    POR: %d", ((rccReg >> 27) & 0x1) > 0 ? 1: 0);
-	rt_kprintf("\r\n +    SFT: %d", ((rccReg >> 28) & 0x1) > 0 ? 1: 0);
-	rt_kprintf("\r\n +    IWD: %d", ((rccReg >> 29) & 0x1) > 0 ? 1: 0);
-	rt_kprintf("\r\n +    WWD: %d", ((rccReg >> 30) & 0x1) > 0 ? 1: 0);
-	rt_kprintf("\r\n +    LPW: %d", ((rccReg >> 31) & 0x1) > 0 ? 1: 0);
-
-}
 
 void time_tick(void)
 {

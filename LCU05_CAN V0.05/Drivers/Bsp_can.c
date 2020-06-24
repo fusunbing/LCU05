@@ -51,23 +51,23 @@ static void Can_GPIO_Configuration(void)
 
 static void Can_Configuration(void)
 {
-	CAN_InitTypeDef CAN_InitStructure = {0};
+    CAN_InitTypeDef CAN_InitStructure = {0};
 
-	// 反初始化CAN1,CAN2
-	CAN_DeInit(CAN1);
-	CAN_DeInit(CAN2);
+    // 反初始化CAN1,CAN2
+    CAN_DeInit(CAN1);
+    CAN_DeInit(CAN2);
     
-	// 置缺省值至相关寄存器
-	CAN_StructInit(&CAN_InitStructure);
+    // 置缺省值至相关寄存器
+    CAN_StructInit(&CAN_InitStructure);
     
-	// 初始化CAN1,CAN2, 置相关寄存器，
-	CAN_InitStructure.CAN_TTCM = DISABLE;
-	CAN_InitStructure.CAN_ABOM = ENABLE;
-	CAN_InitStructure.CAN_AWUM = DISABLE;
-	CAN_InitStructure.CAN_NART = DISABLE;
-	CAN_InitStructure.CAN_RFLM = DISABLE;
-	CAN_InitStructure.CAN_TXFP = DISABLE;
-	CAN_InitStructure.CAN_Mode = CAN_Mode_Normal;
+    // 初始化CAN1,CAN2, 置相关寄存器，
+    CAN_InitStructure.CAN_TTCM = DISABLE;
+    CAN_InitStructure.CAN_ABOM = ENABLE;
+    CAN_InitStructure.CAN_AWUM = DISABLE;
+    CAN_InitStructure.CAN_NART = DISABLE;
+    CAN_InitStructure.CAN_RFLM = DISABLE;
+    CAN_InitStructure.CAN_TXFP = DISABLE;
+    CAN_InitStructure.CAN_Mode = CAN_Mode_Normal;
     
     // CAN Baudrate = 1Mbps (CAN clocked at 42 MHz) 
     // 42M/(7*(1+2+3)) = 1Mbps
@@ -78,14 +78,14 @@ static void Can_Configuration(void)
     //    80%    |  >500k
     //    87.5%  |  <=500k
     
-	// 配置CAN1控制器的波特率    
+    // 配置CAN1控制器的波特率    
     CAN_InitStructure.CAN_SJW  = CAN_SJW_1tq;
     CAN_InitStructure.CAN_BS1  = CAN_BS1_2tq;
     CAN_InitStructure.CAN_BS2  = CAN_BS2_3tq;
     CAN_InitStructure.CAN_Prescaler = 7;  
     CAN_Init(CAN1, &CAN_InitStructure);
     
-	// 配置CAN2控制器的波特率    
+    // 配置CAN2控制器的波特率    
     CAN_InitStructure.CAN_SJW  = CAN_SJW_1tq;
     CAN_InitStructure.CAN_BS1  = CAN_BS1_13tq;
     CAN_InitStructure.CAN_BS2  = CAN_BS2_2tq;
@@ -96,7 +96,7 @@ static void Can_Configuration(void)
 
 static void Can_Filter_Configuration(void)
 {
-	CAN_FilterInitTypeDef CAN_FilterInitStructure = {0};
+    CAN_FilterInitTypeDef CAN_FilterInitStructure = {0};
 
     // CAN的滤波器设定
     CAN_FilterInitStructure.CAN_FilterMode           = CAN_FilterMode_IdMask;
@@ -176,10 +176,10 @@ void CAN2_RX0_IRQHandler(void)
 
 void System_HW_Can_Init(void)
 {
-	// CAN GPIO管脚配置
-	Can_GPIO_Configuration();
+    // CAN GPIO管脚配置
+    Can_GPIO_Configuration();
 
-	// CAN控制器配置
+    // CAN控制器配置
 	Can_Configuration();
 
 	// CAN滤波器配置

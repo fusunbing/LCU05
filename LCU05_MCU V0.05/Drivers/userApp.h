@@ -18,25 +18,25 @@ extern "C" {
 #define KW_VERSION          (3)     //MCU板KW软件版本号
 #define DIO_VERSION         (5)     //DIO板底层软件版本号
 
-#define	SLOT_ID_MVB         (1)
-#define	SLOT_ID_CAN         (2)
-#define	SLOT_ID_ETU         (3)
-#define	SLOT_ID_MCU_A       (4)
-#define	SLOT_ID_MCU_B       (5)
-#define	SLOT_ID_MCU_C       (6)
-#define	SLOT_ID_IO_MIN      (7)
-#define	SLOT_ID_IO_MAX      (33)
+#define SLOT_ID_MVB         (1)
+#define SLOT_ID_CAN         (2)
+#define SLOT_ID_ETU         (3)
+#define SLOT_ID_MCU_A       (4)
+#define SLOT_ID_MCU_B       (5)
+#define SLOT_ID_MCU_C       (6)
+#define SLOT_ID_IO_MIN      (7)
+#define SLOT_ID_IO_MAX      (33)
 
-#define	BOARD_TYPE_ID_MVB   (1)
-#define	BOARD_TYPE_ID_MCU   (2)
-#define	BOARD_TYPE_ID_CAN   (3)
-#define	BOARD_TYPE_ID_ETU   (4)
-#define	BOARD_TYPE_ID_IO    (5)
+#define BOARD_TYPE_ID_MVB   (1)
+#define BOARD_TYPE_ID_MCU   (2)
+#define BOARD_TYPE_ID_CAN   (3)
+#define BOARD_TYPE_ID_ETU   (4)
+#define BOARD_TYPE_ID_IO    (5)
 
-#define	CAR_ID_MC1          (0)     //MC1车节号
-#define	CAR_ID_TP1          (1)     //TP1车节号
-#define	CAR_ID_TP2          (2)     //TP2车节号
-#define	CAR_ID_MC2          (3)     //MC2车节号
+#define CAR_ID_MC1          (0)     //MC1车节号
+#define CAR_ID_TP1          (1)     //TP1车节号
+#define CAR_ID_TP2          (2)     //TP2车节号
+#define CAR_ID_MC2          (3)     //MC2车节号
 
 #define DIO_CNT_6U          (27)    //6U机箱DIO板数量
 #define DIO_CNT_3U          (9)     //3U机箱DIO板数量
@@ -190,7 +190,6 @@ typedef struct
     BOARD_CAN_FLT can;
     BOARD_MVB_FLT mvb;
     BOARD_ETU_FLT etu;
-    
     BOARD_MCU_FLT mcu[3];
     
     BOARD_DIO_FLT dio[IO_BOARD_MAX];
@@ -215,14 +214,12 @@ typedef struct
     uint8_t min;
     uint8_t sec;
     uint8_t res1[24];
-    
+
     uint8_t carID;
     uint8_t kwVer;
     uint8_t res2[30];
-    
+
     LCU_STS_STU me;
-    
-    uint8_t res3[1024];
 }KW_SHM_STU, *PKW_SHM_STU;
 
 typedef struct 
