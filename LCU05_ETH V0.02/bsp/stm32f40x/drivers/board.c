@@ -18,24 +18,12 @@
 #include "stm32f4xx.h"
 #include "board.h"
 
-#include "ds.h"
-#include "Bsp_sysspi.h"
-#include "Bsp_at25drv.h"
 #include "rtc.h"
 #include "version.h"
 #include "Bsp_bakram.h"
 #include "common.h"
-#include "LedTask.h"
 
 
-DS_BSP_INFO BspInfo = {0};
-
-
-/**
- * @addtogroup STM32
- */
-
-/*@{*/
 #define GPIO_SIZE               ( GPIOB_BASE - GPIOA_BASE )
 #define GPIO_PORT_INDEX(port)   ( ( ##port##_BASE - GPIOA_BASE ) / GPIO_SIZE  )
 
@@ -144,18 +132,16 @@ void NVIC_Configuration(void)
  *******************************************************************************/
 void  SysTick_Configuration(void)
 {
-	RCC_ClocksTypeDef  rcc_clocks;
-	rt_uint32_t         cnts;
+    RCC_ClocksTypeDef  rcc_clocks;
+    rt_uint32_t         cnts;
 
-	RCC_GetClocksFreq(&rcc_clocks);
+    RCC_GetClocksFreq(&rcc_clocks);
 
-	cnts = (rt_uint32_t)rcc_clocks.HCLK_Frequency / RT_TICK_PER_SECOND;
-	cnts = cnts / 8;
+    cnts = (rt_uint32_t)rcc_clocks.HCLK_Frequency / RT_TICK_PER_SECOND;
+    cnts = cnts / 8;
 
-	BspInfo.SystemCoreClock =  rcc_clocks.HCLK_Frequency;
-	
-	SysTick_Config(cnts);
-	SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK_Div8);
+    SysTick_Config(cnts);
+    SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK_Div8);
 }
 
 /**
@@ -164,13 +150,13 @@ void  SysTick_Configuration(void)
  */
 void SysTick_Handler(void)
 {
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
-	rt_tick_increase();
+    rt_tick_increase();
 
-	/* leave interrupt */
-	rt_interrupt_leave();
+    /* leave interrupt */
+    rt_interrupt_leave();
 }
 
 
@@ -180,141 +166,51 @@ void SysTick_Handler(void)
  */
 void rt_hw_board_init()
 {
-	IWDG_Initialization(); /* 恢复内部独立看门狗 2019-4-17*/
-    
-		/* Get the system reset flag */
-	BspInfo.RCC_CSR_REG = RCC->CSR;
-	
-	/* NVIC Configuration */
-	NVIC_Configuration();
+    IWDG_Initialization(); /* 恢复内部独立看门狗 2019-4-17*/
 
-	/* Configure the SysTick */
-	SysTick_Configuration();
+    /* NVIC Configuration */
+    NVIC_Configuration();
 
-	rt_hw_usart_init();
-    
-#ifdef RT_USING_CONSOLE
-	rt_console_set_device(CONSOLE_DEVICE);
-#endif
-    
-	System_Led_Init();
-    
-	Board_Information_Init();
-	 rt_kprintf("\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n");
-	//-----------------------------------------------------------------------------------------
-	// MCU信息
-	//-----------------------------------------------------------------------------------------
-	rt_kprintf("\r\n\r\n+++++++++++++++++++++++++++++++++++++++\r\n");
-	rt_kprintf        ("+            SystemInit \r\n");
-	rt_kprintf        ("+                       \r\n");
-	rt_kprintf        ("+ MCU           : STM32F407  \r\n");
-    
-    
-    BspInfo.Cryst_Ex = (RCC->CR & RCC_CR_HSERDY) > 0 ? 1: 0;
+    /* Configure the SysTick */
+    SysTick_Configuration();
 
-	if(BspInfo.Cryst_Ex != RESET)
-	{
-		rt_kprintf        ("+ Clock source  : HSE  \r\n");
-	}
-	else
-	{
-		rt_kprintf        ("+ Clock source  : HSI  \r\n");
-	}
-    
-	rt_kprintf        ("+ SPEED         : %d MHz  \r\n", (BspInfo.SystemCoreClock /1000000));
-	rt_kprintf        ("+ OS            : RT Thread Operating System\r\n");
-	rt_kprintf        ("+ OS Ver        : %d.%d.%d\r\n", RT_VERSION, RT_SUBVERSION, RT_REVISION);
-	rt_kprintf        ("+ BspVer        : %d.%d.%d  \r\n", MAJOR_VERSION_NUMBER, MINOR_VERSION_NUMBER, REVISION_NUMBER);
-	rt_kprintf        ("+ BuildCounts   : %d  \r\n", BUILD_NUMBER);
-	rt_kprintf        ("+ COPYRIGHT     : TongYe \r\n");
-	rt_kprintf        ("+++++++++++++++++++++++++++++++++++++++\r\n");
-	rt_kprintf("\r\n[*] BSP Module Init Start ...... \r\n");
-	BspInfo.BSP_Ver = BSP_VERSION * 100 + BSP_SUBVERSION * 10 + BSP_REVISION;
-	
-	
-	    fsmc_gpio_init();
-			//-----------------------------------------------------------------------------------------
-			// EXT_RAM 初始化
-			//-----------------------------------------------------------------------------------------	
-	    fsmc_bank4_init();
-	#define TY_MEMTEST
-		#ifdef TY_MEMTEST
-	{
-		unsigned char * p_extram = (unsigned char *)STM32_EXT_SRAM_BEGIN;
-		unsigned int temp;
+    rt_hw_usart_init();
 
-		rt_kprintf("\r\nmem testing....");
-		for(temp = 0; temp < (STM32_EXT_SRAM_END - STM32_EXT_SRAM_BEGIN); temp++)
-		{
-				*p_extram++ = (unsigned char)temp;
-		}
+    #ifdef RT_USING_CONSOLE
+    rt_console_set_device(CONSOLE_DEVICE);
+    #endif
 
-		p_extram = (unsigned char *)STM32_EXT_SRAM_BEGIN;
-		for(temp = 0; temp < (STM32_EXT_SRAM_END - STM32_EXT_SRAM_BEGIN); temp++)
-		{
-				if( *p_extram++ != (unsigned char)temp )
-				{
-						rt_kprintf("\rmemtest fail @ %08X\r\nsystem halt!!!!!",(unsigned int)p_extram);
-						while(1);
-				}
-		}
-		rt_kprintf("\r\nmem test pass!!\r\n");
 
-		for(temp = 0; temp < (STM32_EXT_SRAM_END-STM32_EXT_SRAM_BEGIN); temp++)
-		{
-				*p_extram++ = 0;
-		}
-	}/* memtest */
-	#endif
 
-		//-----------------------------------------------------------------------------------------
-	// Backup SRAM 模块初始化
-	//-----------------------------------------------------------------------------------------
-	System_hw_bakramInit();
-	
-	
-	//-----------------------------------------------------------------------------------------
-	// SPI HW 初始化
-	//-----------------------------------------------------------------------------------------	
-	if(System_hw_spi_Init() == FUNC_RET_ERR)
-	{
-			rt_kprintf("\r\nSPI ERR: SPI HW ERR!");
-			while(1);
-	}
-	else
-	{
-			rt_kprintf("\r\nSPI INFO: Init success! Flash is ready for use!");
-	}			
-	//-----------------------------------------------------------------------------------------
-	// AT25 Flash Init
-	//-----------------------------------------------------------------------------------------
- 	if(AT25_ICInit() == FUNC_RET_ERR)
- 	{
- 		rt_kprintf("\r\nAT25 ERR: Flash HW ERR!");
- 	}
- 	else
- 	{
- 		rt_kprintf("\r\nAT25 INFO: Flash Init success!");
- 	}
-	
-		//-----------------------------------------------------------------------------------------
-	// rtc模块初始化
-	//-----------------------------------------------------------------------------------------
-	rt_hw_rtc_init();
-	rt_kprintf("\r\nRTC INFO: RTC Module Init success!");
-	
-	// TIM 模块初始化
-	if(System_hw_timerInit() == -1)
-	{
-      while(1)
-      {
-          rt_kprintf("\r\n+ TIM ERR: Can not create TIM_Sem!\r\n");
-      }
-	}
-	else
-	{
-		  rt_kprintf("\r\n+ TIM INFO: Init success!\r\n");
-	}
+    Board_Information_Init();
+     rt_kprintf("\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n");
+    //-----------------------------------------------------------------------------------------
+    // MCU信息
+    //-----------------------------------------------------------------------------------------
+    rt_kprintf("\r\n\r\n+++++++++++++++++++++++++++++++++++++++\r\n");
+    rt_kprintf        ("+            SystemInit \r\n");
+    rt_kprintf        ("+                       \r\n");
+    rt_kprintf        ("+ MCU           : STM32F407  \r\n");
+
+    rt_kprintf        ("+ OS            : RT Thread Operating System\r\n");
+    rt_kprintf        ("+ OS Ver        : %d.%d.%d\r\n", RT_VERSION, RT_SUBVERSION, RT_REVISION);
+    rt_kprintf        ("+ BspVer        : %d.%d.%d  \r\n", MAJOR_VERSION_NUMBER, MINOR_VERSION_NUMBER, REVISION_NUMBER);
+    rt_kprintf        ("+ BuildCounts   : %d  \r\n", BUILD_NUMBER);
+    rt_kprintf        ("+ COPYRIGHT     : TongYe \r\n");
+    rt_kprintf        ("+++++++++++++++++++++++++++++++++++++++\r\n");
+    rt_kprintf("\r\n[*] BSP Module Init Start ...... \r\n");
+
+
+    fsmc_gpio_init();
+    // EXT_RAM 初始化
+    fsmc_bank4_init();
+
+    // Backup SRAM 模块初始化
+    System_hw_bakramInit();
+
+    // rtc模块初始化
+    rt_hw_rtc_init();
+    rt_kprintf("\r\nRTC INFO: RTC Module Init success!");
 }
 
 
@@ -358,7 +254,6 @@ static void _do_conf_fsmc(uint8_t port_index,
     GPIO_InitStructure->GPIO_Pin = (1 << GPIO_PinSource); // GPIO_Pin
     GPIO_Init(GPIO, GPIO_InitStructure);
 }
-
 
 
 static void fsmc_bank4_init(void)
@@ -427,39 +322,33 @@ static void fsmc_bank4_init(void)
     FSMC_NORSRAMCmd(FSMC_Bank, ENABLE);
 }
 
-/*******************************************************************************
-* Function Name  : IWDG_Initialization
-* Description    :
-* Author         :  5/12/2017 ty_lily
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
+
 static void IWDG_Initialization(void)
 {
-	uint8_t obVal;
+    uint8_t obVal;
 
-	//仿真模式下，IWDG不起作用
-	DBGMCU_APB1PeriphConfig(DBGMCU_IWDG_STOP, ENABLE);
-	//读取flash中USER区WDG_SW寄存器标志;1：SW 0:HW
-	//若为软件模式，则修改为硬件模式
-	obVal = FLASH_OB_GetUser();
-	if (obVal & 0x01)
-	{
-		FLASH_OB_Unlock();
-		FLASH_OB_UserConfig(OB_IWDG_HW, OB_STOP_NoRST, OB_STDBY_NoRST);
-		while (FLASH_OB_Launch() != FLASH_COMPLETE);
-		FLASH_OB_Lock();
-	}
+    //仿真模式下，IWDG不起作用
+    DBGMCU_APB1PeriphConfig(DBGMCU_IWDG_STOP, ENABLE);
 
-	//操作寄存器前的解锁操作
-	IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+    //读取flash中USER区WDG_SW寄存器标志;1：SW 0:HW
+    //若为软件模式，则修改为硬件模式
+    obVal = FLASH_OB_GetUser();
+    if (obVal & 0x01)
+    {
+        FLASH_OB_Unlock();
+        FLASH_OB_UserConfig(OB_IWDG_HW, OB_STOP_NoRST, OB_STDBY_NoRST);
+        while (FLASH_OB_Launch() != FLASH_COMPLETE);
+        FLASH_OB_Lock();
+    }
 
-	IWDG_SetPrescaler(IWDG_Prescaler_64);//精度为2ms
-	//设置超时时间约8s （2ms*0xFFF）
-	IWDG_SetReload(0xFFF);
-	//喂狗操作
-	IWDG_ReloadCounter();
+    //操作寄存器前的解锁操作
+    IWDG_WriteAccessCmd(IWDG_WriteAccess_Enable);
+
+    IWDG_SetPrescaler(IWDG_Prescaler_64);//精度为2ms
+
+    //设置超时时间约8s （2ms*0xFFF）
+    IWDG_SetReload(0xFFF);
+    //喂狗操作
+    IWDG_ReloadCounter();
 }
 
-/*@}*/

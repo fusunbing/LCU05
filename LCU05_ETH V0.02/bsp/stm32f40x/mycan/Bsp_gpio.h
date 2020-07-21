@@ -1,4 +1,5 @@
 
+
 #ifndef __BSP_GPIO_H__
 #define __BSP_GPIO_H__
 
@@ -14,7 +15,6 @@ enum PIN_MODE
     PIN_MODE_INPUT_PULLUP,
 };
 
-
 enum PIN_NAME
 { 
     SLOT_ID1 = 0,
@@ -29,12 +29,15 @@ enum PIN_NAME
     BOX_ID2,
     BOX_ID3,
     BOX_ID4,
+    LED_ACT,
+    LED_FLT
 };
 
- 
+
+void stmPinsInit(void);
 void SetPin(uint32_t index, uint8_t val);
 uint8_t GetPin(uint32_t index);
-void stmPinsInit(void);
+
 
 #endif
 

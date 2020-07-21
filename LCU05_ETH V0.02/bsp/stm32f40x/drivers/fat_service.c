@@ -1,25 +1,6 @@
-/***************************************************************************
 
-Copyright (C), 1999-2018, Tongye Tech. Co., Ltd.
-
-* @file           fat_service.c
-* @author        
-* @version        V1.0.0
-* @date           2018-08-17
-* @brief          (1)  
-                  (2) 
-                  (3) 
-History:          // Revision Records
-
-<Author>             <time>       <version >            <desc>
-
-Lily, Life           2018-08-17       V1.0.0               
-
-***************************************************************************/
-/* Includes --------------------------------------------------------------*/
 
 #include "fat_service.h"
-//#include "Sdatatype.h"
 #include "crc16.h"
 #include "sdio_sd.h"
 #include "dfs.h"
@@ -28,9 +9,6 @@ Lily, Life           2018-08-17       V1.0.0
 #include <dfs_elm.h>
 
 
-//---------------------------------------------------------------------------
-//                        Task Macro 
-//---------------------------------------------------------------------------
 #define BSP_FAT_SERVICE_STACKSIZE   (4 * 1024 / 4)  
 #define BSP_FAT_SERVICE_PRIORITY    (0x1C)
 
@@ -46,8 +24,8 @@ Lily, Life           2018-08-17       V1.0.0
 
 typedef struct _fat_service_controlData_
 {
-	uint8_t  serviceSt;
-	uint8_t  cfgvalidFlag;
+    uint8_t  serviceSt;
+    uint8_t  cfgvalidFlag;
 }FATSRVICE_CONTROL;
 //---------------------------------------------------------------------------
 //                        Task Object
@@ -91,19 +69,8 @@ static void FatService_MailboxInit(void);
 static long FatService_Notification(uint32_t data);
 static long FatService_MailAccess(void);
 static long FatService_MailAccessMaintain(void);
-//---------------------------------------------------------------------------
-//                      External functions 
-//---------------------------------------------------------------------------
 
 
-/*******************************************************************************
-* Description    : 
-*                   
-*
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
 void  Fat_Service_CreateApp(void)
 {
     fatSrvEnable = 0;
@@ -119,44 +86,37 @@ void  Fat_Service_CreateApp(void)
         );
 
     rt_thread_startup(&Bsp_FatService_thread);
-	
 }
-/*******************************************************************************
-* Description    : 
-*                   
-*
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
+
+
 static uint32_t tt = 0u;
 static void FatService_Task(void* parameter)
 {
     int initResult = -1;
     long retMail = 0;
-    
+
     fatServ_control.serviceSt = FATSERV_ST_INIT;
-	
-	for (;;)
-	{
-		switch(fatServ_control.serviceSt)
-		{
-			case FATSERV_ST_INIT:
+
+    for (;;)
+    {
+        switch(fatServ_control.serviceSt)
+        {
+            case FATSERV_ST_INIT:
                 rt_thread_delay(300);
-				initResult = FatService_Init();            
+                initResult = FatService_Init();            
                 if(initResult >= 0)
                 {
                     fatServ_control.serviceSt = FATSERV_ST_CFG;
                 }
-				break;
-			case FATSERV_ST_CFGWAIT:
-				break;
-			case FATSERV_ST_CFG:                		
+                break;
+            case FATSERV_ST_CFGWAIT:
+                break;
+            case FATSERV_ST_CFG:
                 rt_thread_delay(100);
                 FatService_InitDirBase();
                 fatServ_control.serviceSt = FATSERV_ST_SERVECREAT;
-				break;
-			case FATSERV_ST_SERVECREAT:
+                break;
+            case FATSERV_ST_SERVECREAT:
                 tt = rt_tick_get();
                 
                 if(fat_ChkEvtCfgFile(&sysEcfg) != SPD_OPERTION_OK)
@@ -170,16 +130,15 @@ static void FatService_Task(void* parameter)
                     fatServ_control.serviceSt = FATSERV_ST_NORMAL;
                 }
                 tt = rt_tick_get() - tt;
-				break;			
-			case FATSERV_ST_NORMAL:
+                break;
+            case FATSERV_ST_NORMAL:
                 retMail = FatService_MailAccess();
             
                 if(retMail == SPD_OPERTION_EXITSRV)
                 {
                     fatServ_control.serviceSt = FATSERV_ST_PTU;
                 }
-                //rt_thread_delay(3000);
-				break;
+                break;
             case FATSERV_ST_PTU:
                 retMail = FatService_MailAccessMaintain();
                 if(retMail == SPD_OPERTION_EXITSRV)
@@ -187,27 +146,18 @@ static void FatService_Task(void* parameter)
                     fatServ_control.serviceSt = FATSERV_ST_NORMAL;
                 }
                 break;
-			case FATSERV_ST_FAULT:
-				break;
-			case 0x11:
-				
-				break;
-			default:
-				break;
-		}
-	}
+            case FATSERV_ST_FAULT:
+                break;
+            case 0x11:
+                break;
+            default:
+                break;
+        }
+    }
 
 }
 
 
-/*******************************************************************************
-* Function Name  :
-* Description    : [8/17/2018 Lily]
-*
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
 static int FatService_Init(void)
 {
     int retVal = -1;
@@ -240,14 +190,7 @@ static int FatService_Init(void)
     return retVal;
 }
 
-/*******************************************************************************
-* Function Name  :
-* Description    : [8/17/2018 Lily]
-*
-* Input          : None
-* Output         : None
-* Return         : None
-*******************************************************************************/
+
 #include <time.h>
 static int FatService_InitDirBase(void)
 {
@@ -953,21 +896,6 @@ void FatPtu_DownloadEvt(uint8_t* input, uint8_t* outbuff, uint32_t* size)
         rt_kprintf("[Ptu] CrcErr!  \r\n");
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void tc_evt(void)

@@ -23,19 +23,19 @@ const uint8_t* p_led_flt;
                                                  
 static void Led_gpio_init(void)
 {
-	GPIO_InitTypeDef  GPIO_InitStructure;
+    GPIO_InitTypeDef  GPIO_InitStructure;
 
-	rt_kprintf("\r\n+ LED GPIO configure......\r\n");
+    rt_kprintf("\r\n+ LED GPIO configure......\r\n");
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 
- 	GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
-	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-	GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;    
-    
-	GPIO_InitStructure.GPIO_Pin   = LED_ACT_PIN;
-	GPIO_Init(LED_ACT_PT, &GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;    
+
+    GPIO_InitStructure.GPIO_Pin   = LED_ACT_PIN;
+    GPIO_Init(LED_ACT_PT, &GPIO_InitStructure);
 
     GPIO_InitStructure.GPIO_Pin   = LED_FLT_PIN;
     GPIO_Init(LED_FLT_PT, &GPIO_InitStructure);	
@@ -50,7 +50,7 @@ static void Set_Led_Act(uint8_t sts)
     }
     else
     {
-    	GPIO_ResetBits(LED_FLT_PT, LED_FLT_PIN);    
+        GPIO_ResetBits(LED_FLT_PT, LED_FLT_PIN);    
     }   
 }
 
@@ -63,7 +63,7 @@ static void Set_Led_Flt(uint8_t sts)
     }
     else
     {
-    	GPIO_ResetBits(LED_ACT_PT, LED_ACT_PIN);    
+        GPIO_ResetBits(LED_ACT_PT, LED_ACT_PIN);    
     }   
 }
 
@@ -71,8 +71,8 @@ static void Set_Led_Flt(uint8_t sts)
 //∞Â‘ÿLEDµ∆≥ı ºªØ
 void System_Led_Init(void)
 {
-	Led_gpio_init();
-	
+    Led_gpio_init();
+
     System_Led_SetMode(LED_ACT, MODE_FLASH_FAST);    
     System_Led_SetMode(LED_FLT, MODE_OFF);
 }
@@ -84,34 +84,34 @@ void System_Led_SetMode(Led_Type lt, Led_Mode lm)
 
     switch(lm)
     {
-	    case MODE_ON:
-	        p = _LED_ON;
-	        break;
-	    case MODE_OFF:
-	        p = _LED_OFF;
-	        break;
-	    case MODE_FLASH_SLOW:
-	        p = _LED_FLASH_SLOW;
-	        break;
-	    case MODE_FLASH_FAST:
-	        p = _LED_FLASH_FAST;
-	        break;
-	    default:
-	        p = _LED_OFF;
-	        break;
+        case MODE_ON:
+            p = _LED_ON;
+            break;
+        case MODE_OFF:
+            p = _LED_OFF;
+            break;
+        case MODE_FLASH_SLOW:
+            p = _LED_FLASH_SLOW;
+            break;
+        case MODE_FLASH_FAST:
+            p = _LED_FLASH_FAST;
+            break;
+        default:
+            p = _LED_OFF;
+            break;
     }
 
-	switch(lt)
-	{
-		case LED_ACT:
-			p_led_act = p;
-			break;
-		case LED_FLT:
-			p_led_flt = p;
-			break;
-		default:
-			break;
-	}
+    switch(lt)
+    {
+        case LED_ACT:
+            p_led_act = p;
+            break;
+        case LED_FLT:
+            p_led_flt = p;
+            break;
+        default:
+            break;
+    }
 }
 
 

@@ -68,9 +68,9 @@ static void can_thread_entry(void* parameter)
 void Bsp_canTask_Init(void)
 {
     rt_err_t rtv;
-    
+
     canSend_Event_init = rt_event_init(&canSend_Event, "CanSend_Event", RT_IPC_FLAG_FIFO);
-    
+
     rtv = rt_thread_init(&can_thread,
             "CanTask",
             can_thread_entry,
@@ -79,7 +79,7 @@ void Bsp_canTask_Init(void)
             CAN_TASK_STACK_SIZE,
             CAN_TASK_PRIORITY,
             8);
-                            
+
     if (rtv == RT_EOK)
     {
         rt_thread_startup(&can_thread);

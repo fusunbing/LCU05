@@ -59,7 +59,6 @@ void inputProcess(PBOARD_DIO_STU pDio)
 {
     uint8_t i;    
     uint8_t tempIn[2];
-    static rt_tick_t tick = 0;
 
     for(i = 0; i < (IN_CNT + OU_FB_CNT); i++)
     {
@@ -90,12 +89,7 @@ void inputProcess(PBOARD_DIO_STU pDio)
     
     if(tempIn[0] != pDio->in[0] || tempIn[1] != pDio->in[1])
     {
-        if((rt_tick_get() - tick) > 100)
-        {
-            Can_Send_Event();
-        }
-        
-        tick = rt_tick_get();
+        Can_Send_Event();
     }
 }
 
@@ -114,13 +108,13 @@ static void HW_output(uint32_t* ouBuf)
 void outputProcess(PBOARD_DIO_STU pDio, PBOARD_MCU_STU pMcu_A, PBOARD_MCU_STU pMcu_B, PBOARD_MCU_STU pMcu_C)
 {
     uint32_t i;
-    
+
     /* 输出指令三取二 */
     for(i = 0; i < OU_CNT; i++)
     {
         pDio->Bits_ou[i] = ((pMcu_A->Bits_ou[ds.offset + i] + pMcu_B->Bits_ou[ds.offset + i] + pMcu_C->Bits_ou[ds.offset + i]) >= 2) ? 1 : 0;
     }
-    
+
     HW_output(pDio->Bits_ou);
 }
 

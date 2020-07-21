@@ -185,8 +185,8 @@ unsigned char ch;
 void USART2_IRQHandler(void)
 {
 
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
     if (USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
     {
@@ -196,95 +196,87 @@ void USART2_IRQHandler(void)
         USART_ClearITPendingBit(USART2, USART_IT_RXNE);
     }
 
-	/* leave interrupt */
-	rt_interrupt_leave();
+    /* leave interrupt */
+    rt_interrupt_leave();
 }
 
 
 void USART3_IRQHandler(void)
 {
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
-
-
-	/* leave interrupt */
-	rt_interrupt_leave();
+    /* leave interrupt */
+    rt_interrupt_leave();
 }
 
 
 void UART4_IRQHandler(void)
 {
     
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
-
-    
-	/* leave interrupt */
-	rt_interrupt_leave();
+    /* leave interrupt */
+    rt_interrupt_leave();
 
 }
 
 
 void TIM1_UP_TIM10_IRQHandler(void)
 {
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
-
-	/* leave interrupt */
-	rt_interrupt_leave();
+    /* leave interrupt */
+    rt_interrupt_leave();
 }
 
 
 void TIM2_IRQHandler(void)
 {
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
 
-	/* leave interrupt */
-	rt_interrupt_leave();
-
+    /* leave interrupt */
+    rt_interrupt_leave();
 }
 
 
 void TIM3_IRQHandler(void)
 {
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
     TIM_ClearITPendingBit(TIM3, TIM_IT_Update);    
     CanTask_Send_Event_Cycle();
 
-	/* leave interrupt */
-	rt_interrupt_leave();
+    /* leave interrupt */
+    rt_interrupt_leave();
 }
 
 
 void TIM4_IRQHandler(void)
 {
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
     TIM_ClearITPendingBit(TIM4, TIM_IT_Update);    
-	sem_10ms_Release();
+    sem_10ms_Release();
 
-	/* leave interrupt */
-	rt_interrupt_leave();
+    /* leave interrupt */
+    rt_interrupt_leave();
 }
 
 
 void TIM5_IRQHandler(void)
 {
-	/* enter interrupt */
-	rt_interrupt_enter();
+    /* enter interrupt */
+    rt_interrupt_enter();
 
-
-	/* leave interrupt */
-	rt_interrupt_leave();
-
+    /* leave interrupt */
+    rt_interrupt_leave();
 }
 
 
@@ -293,8 +285,6 @@ void TIM7_IRQHandler(void)
     /* enter interrupt */
     rt_interrupt_enter();
 
-
-    
     /* leave interrupt */
     rt_interrupt_leave();
 
@@ -302,14 +292,14 @@ void TIM7_IRQHandler(void)
 
 
 void EXTI3_IRQHandler(void)
-{ 
-    
+{
+
 }
 
 
 void EXTI9_5_IRQHandler(void)
 { 
-    //Bsp_PowerDetect_EXIT_IRQHandler();
+
 }
 
 
@@ -325,20 +315,20 @@ void DMA1_Stream3_IRQHandler(void)
 
 void CAN1_RX0_IRQHandler(void)
 {
-	rt_interrupt_enter();
-	
-	CAN1_RX0_IRQ();
-    
-	rt_interrupt_leave();
+    rt_interrupt_enter();
+
+    CAN1_RX0_IRQ();
+
+    rt_interrupt_leave();
 }
 
 
 void CAN2_RX0_IRQHandler(void)
 {
-	rt_interrupt_enter();
+    rt_interrupt_enter();
 
-	CAN2_RX0_IRQ();
-	
-	rt_interrupt_leave();
+    CAN2_RX0_IRQ();
+
+    rt_interrupt_leave();
 }
 

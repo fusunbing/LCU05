@@ -126,7 +126,7 @@ static void canNodes_detect(void)
         ds.DIO[i].flt.can2 = (uint8_t)Get_CanSts(2, ds.DIO[i].slotID);
         ds.DIO[i].flt.isLost = (ds.DIO[i].flt.can1 == RT_ERROR && ds.DIO[i].flt.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
         
-        if(ds.MCU[i].flt.isLost == RT_ERROR)
+        if(ds.MCU[i].flt.isLost == RT_ERROR || ds.MCU[i].logic == RT_ERROR)
         {
             rt_memset(ds.MCU[i].ou, 0, 8);
         }

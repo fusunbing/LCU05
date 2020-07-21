@@ -1,44 +1,16 @@
-/***************************************************************************
 
-Copyright (C), 1999-2014, Tongye Tech. Co., Ltd.
 
-* @file           EventRecorder.c
-* @author          
-* @version        V0.1.0
-* @date           2014-06-19
-* @brief          (1)  
-(2) 
-(3) 
-History:          // Revision Records
-
-<Author>             <time>       <version >            <desc>
-
-lily,life           2014-06-19       V0.1.0             ³õ´Î½¨Á¢
-
-***************************************************************************/
-/* Includes ------------------------------------------------------------------*/
 #include "rtthread.h"
 #include "EventRecorder.h"
 
-
-/* Private typedef -----------------------------------------------------------*/
 #define EVENT_RECORDER_OBJ_COUNTS (6)
 
-
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
 static Event_DatasetObjectTypeDef edo[EVENT_RECORDER_OBJ_COUNTS];
 static __IO uint32_t edo_regCnt;
-
 
 static void record(Event_DatasetObjectTypeDef* _me, void* cell);
 
 
-
-/**
-* @}
-*/
 void EventRecd_Init(void)
 {
     uint16_t i;
@@ -59,9 +31,7 @@ void EventRecd_Init(void)
     edo_regCnt = 0;
 }
 
-/**
-* @}
-*/
+
 Event_DatasetObjectTypeDef* EventRecd_CreateObject(uint32_t cellsize, uint32_t loopsize)
 {
     void* memCreate;
@@ -94,10 +64,6 @@ Event_DatasetObjectTypeDef* EventRecd_CreateObject(uint32_t cellsize, uint32_t l
 }
 
 
-
-/**
-* @}
-*/
 static void record(Event_DatasetObjectTypeDef* _me, void* cell)
 {
     void* src;
@@ -133,20 +99,4 @@ static void record(Event_DatasetObjectTypeDef* _me, void* cell)
         rt_memset(_me->pBufWrite, 0 , (_me->cellSize * _me->loopSize));
     }
 }
-
-/**
-* @}
-*/
-/**
-* @}
-*/
-
-/**
-* @}
-*/
-
-/************************ (C) COPYRIGHT Tongye 2014 *****END OF FILE****/
-
-
-
 

@@ -10,7 +10,7 @@
 #define CAN_MANAGE_PWRON            (0)
 #define CAN_MANAGE_SELF_CHECK       (1)
 #define CAN_MANAGE_SCAN             (2)
-#define CAN_MANAGE_MD               (3)
+#define CAN_MANAGE_REMOTEIN         (3)
 
 
 CanRx_hook canRxHandle[256] = {RT_NULL};
@@ -21,9 +21,9 @@ static uint32_t can_manage_sts = CAN_MANAGE_PWRON;
 static void can_input_handle(CanRxMsg* pMsg)
 {
     CAN_EXTID_INFO info = {0};
-    
+
     info.value = pMsg->ExtId;
-    
+
     if(info.id.dst == CAN_ADDR_MCU_GROUP && pMsg->DLC == 2)
     {
         if(info.id.src >= SLOT_ID_IO_MIN && info.id.src <= SLOT_ID_IO_MAX)
@@ -47,14 +47,18 @@ static void can_output_handle(CanRxMsg* pMsg)
             case SLOT_ID_MCU_A:
                 rt_memcpy(ds.MCU[0].ou, pMsg->Data, pMsg->DLC);
                 break;
+
             case SLOT_ID_MCU_B:
                 rt_memcpy(ds.MCU[1].ou, pMsg->Data, pMsg->DLC);
                 break;
+
             case SLOT_ID_MCU_C:
                 rt_memcpy(ds.MCU[2].ou, pMsg->Data, pMsg->DLC);
                 break;
+
             default:
                 break;
+
         }
     }
 }
@@ -73,14 +77,18 @@ static void can_remoteIn_handle(CanRxMsg* pMsg)
             case SLOT_ID_MCU_A:
                 rt_memcpy(ds.MCU[0].remote_in, pMsg->Data, pMsg->DLC);
                 break;
+
             case SLOT_ID_MCU_B:
                 rt_memcpy(ds.MCU[1].remote_in, pMsg->Data, pMsg->DLC);
                 break;
+
             case SLOT_ID_MCU_C:
                 rt_memcpy(ds.MCU[2].remote_in, pMsg->Data, pMsg->DLC);
                 break;
+
             default:
                 break;
+
         }
         remoteIn_2oo3();
     }
@@ -90,9 +98,9 @@ static void can_remoteIn_handle(CanRxMsg* pMsg)
 static void can_io_sts_handle(CanRxMsg* pMsg)
 {
     CAN_EXTID_INFO info = {0};
-    
+
     info.value = pMsg->ExtId;
-    
+
     if(info.id.dst == CAN_ADDR_MCU_GROUP && pMsg->DLC == 8)
     {
         if(info.id.src >= SLOT_ID_IO_MIN && info.id.src <= SLOT_ID_IO_MAX)
@@ -121,6 +129,7 @@ static void can_powerOn_handle(CanRxMsg* pMsg)
                     ds.mvb_CarID = pMsg->Data[2];
                 }
                 break;
+
             case SLOT_ID_CAN:
                 if(info.id.port == 1 && pMsg->DLC == 4)
                 {
@@ -135,8 +144,9 @@ static void can_powerOn_handle(CanRxMsg* pMsg)
                     ds.can2_Version = pMsg->Data[1];
                     ds.can2_CarID = pMsg->Data[2];
                     ds.can2_ExtCan = pMsg->Data[3];
-                }     
+                }
                 break;
+
             case SLOT_ID_ETU:
                 if(pMsg->DLC == 3)
                 {
@@ -145,30 +155,75 @@ static void can_powerOn_handle(CanRxMsg* pMsg)
                     ds.etu_CarID = pMsg->Data[2];
                 }
                 break;
+
             case SLOT_ID_MCU_A:
                 if(pMsg->DLC == 6)
                 {
                     rt_memcpy(&ds.MCU[0].lifesign, pMsg->Data, pMsg->DLC);
                 }
                 break;
+
             case SLOT_ID_MCU_B:
                 if(pMsg->DLC == 6)
                 {
                     rt_memcpy(&ds.MCU[1].lifesign, pMsg->Data, pMsg->DLC);
                 }
                 break;
+
             case SLOT_ID_MCU_C:
                 if(pMsg->DLC == 6)
                 {
                     rt_memcpy(&ds.MCU[2].lifesign, pMsg->Data, pMsg->DLC);
                 }
-                break;            
+                break;
+
             default:
                 if(info.id.src >= SLOT_ID_IO_MIN && info.id.src <= SLOT_ID_IO_MAX && pMsg->DLC == 2)
                 {
                     ds.DIO[info.id.src - SLOT_ID_IO_MIN].lifesign = pMsg->Data[0];
                     ds.DIO[info.id.src - SLOT_ID_IO_MIN].version = pMsg->Data[1];
                 }
+                break;
+
+        }
+    }
+}
+
+
+
+static void can_lifesign_handle(CanRxMsg* pMsg)
+{
+    CAN_EXTID_INFO info = {0};
+    BYTE_TO_BIT sts = { 0 };
+    
+    info.value = pMsg->ExtId;
+
+    if(info.id.dst == CAN_ADDR_BROADCAST && pMsg->DLC == 2)
+    {
+        switch(info.id.src)
+        {
+            case SLOT_ID_MCU_A:
+                ds.MCU[0].lifesign = pMsg->Data[0];
+                sts.value = pMsg->Data[1];
+                ds.MCU[0].dc110v = sts.Bits.bit0;
+                ds.MCU[0].dc5v = sts.Bits.bit1;
+                break;
+
+            case SLOT_ID_MCU_B:
+                ds.MCU[1].lifesign = pMsg->Data[0];
+                sts.value = pMsg->Data[1];
+                ds.MCU[1].dc110v = sts.Bits.bit0;
+                ds.MCU[1].dc5v = sts.Bits.bit1;
+                break;
+
+            case SLOT_ID_MCU_C:
+                ds.MCU[2].lifesign = pMsg->Data[0];
+                sts.value = pMsg->Data[1];
+                ds.MCU[2].dc110v = sts.Bits.bit0;
+                ds.MCU[2].dc5v = sts.Bits.bit1;
+                break;
+
+            default:
                 break;
         }
     }
@@ -285,7 +340,7 @@ static void can_lcu_sts_handle(CanRxMsg* pMsg)
                 pKW_SHM->hour = pMsg->Data[5];
                 pKW_SHM->min = pMsg->Data[6];
                 pKW_SHM->sec = pMsg->Data[7];
-                
+
                 setRtc(pKW_SHM->year, pKW_SHM->mon, pKW_SHM->day, pKW_SHM->hour, pKW_SHM->min, pKW_SHM->sec);
             }
         }
@@ -303,6 +358,7 @@ void can_rx_handle_register(void)
     canRxHandle[CAN_FUN_MVB_RTC] = can_mvb_rtc_handle;
     canRxHandle[CAN_FUN_IO_STS] = can_io_sts_handle;
     canRxHandle[CAN_FUN_POWER_ON] = can_powerOn_handle;
+    canRxHandle[CAN_FUN_LIFESIGN] = can_lifesign_handle;
     
     for(i = CAN_FUN_CAR1_DATA; i < 256; i++)
     {
@@ -340,27 +396,33 @@ void can_rx_serve(CanRxMsg* pMsg)
 /************************************************** CAN TX Serve **************************************************/
 
 
+static uint32_t GetExtId(uint32_t funId, uint32_t pri)
+{
+    CAN_EXTID_INFO info = { 0 };
+
+    info.id.funID = funId;
+    info.id.src = ds.slotID;
+    info.id.dst = CAN_ADDR_BROADCAST;
+    info.id.pri = pri;
+    info.id.port = 0;
+
+    return info.value;
+}
+
+
 void can_send_output(void)
 {
     CanTxMsg txMsg = { 0 };
-    CAN_EXTID_INFO info = { 0 };
-    
-    info.id.funID = CAN_FUN_OUTPUT;
-    info.id.src = ds.slotID;
-    info.id.dst = CAN_ADDR_BROADCAST;
-    info.id.pri = CAN_PRI_H;
-    info.id.port = 0;
 
-    txMsg.ExtId = info.value;
+    txMsg.ExtId = GetExtId(CAN_FUN_OUTPUT, CAN_PRI_H);
     txMsg.IDE = CAN_ID_EXT;
     txMsg.RTR = 0;
     txMsg.DLC = 8;
 
-    rt_memcpy(txMsg.Data, ds.ouBuf, 8);
-    
-    if(can_manage_sts == CAN_MANAGE_SCAN || can_manage_sts == CAN_MANAGE_MD)
+    rt_memcpy(txMsg.Data, ds.ouBuf, txMsg.DLC);
+
+    if(can_manage_sts == CAN_MANAGE_SCAN || can_manage_sts == CAN_MANAGE_REMOTEIN)
     {
-        CANx_Send(&txMsg);
         CANx_Send(&txMsg);
     }
 }
@@ -369,27 +431,42 @@ void can_send_output(void)
 static void can_send_PwrOn(void)
 {
     CanTxMsg txMsg = { 0 };
-    CAN_EXTID_INFO info = { 0 };
     static uint8_t lifesign = 0;
-    
-    info.id.funID = CAN_FUN_POWER_ON;
-    info.id.src = ds.slotID;
-    info.id.dst = CAN_ADDR_BROADCAST;
-    info.id.pri = CAN_PRI_L;
-    info.id.port = 0;
 
-    txMsg.ExtId = info.value;
+    txMsg.ExtId = GetExtId(CAN_FUN_POWER_ON, CAN_PRI_L);
     txMsg.IDE = CAN_ID_EXT;
     txMsg.RTR = 0;
     txMsg.DLC = 6;
-    
+
     txMsg.Data[0] = lifesign++;         //生命信号
     txMsg.Data[1] = MCU_VERSION;        //底层软件版本号
     txMsg.Data[2] = pKW_SHM->kwVer;     //KW软件版本号
     txMsg.Data[3] = ds.carID;           //车节号
     txMsg.Data[4] = ds.dc110v;          //状态信息
     txMsg.Data[5] = ds.dc5v;            //状态信息
-    
+
+    CANx_Send(&txMsg);
+}
+
+
+static void can_send_Lifesign(void)
+{
+    CanTxMsg txMsg = { 0 };
+    BYTE_TO_BIT sts = { 0 };
+    static uint8_t lifesign = 0;
+
+    txMsg.ExtId = GetExtId(CAN_FUN_LIFESIGN, CAN_PRI_L);
+    txMsg.IDE = CAN_ID_EXT;
+    txMsg.RTR = 0;
+    txMsg.DLC = 2;
+
+    sts.Bits.bit0 = ds.dc110v;
+    sts.Bits.bit1 = ds.dc5v;
+    sts.Bits.bit2 = ds.MCU[ds.slotID - SLOT_ID_MCU_A].flt.logic;
+
+    txMsg.Data[0] = lifesign++;         //生命信号
+    txMsg.Data[1] = sts.value;          //状态信息
+
     CANx_Send(&txMsg);
 }
 
@@ -397,19 +474,12 @@ static void can_send_PwrOn(void)
 static void can_send_selfCheck(uint8_t index)
 {
     CanTxMsg txMsg = { 0 };
-    CAN_EXTID_INFO info = { 0 };
-    
-    info.id.funID = CAN_FUN_SELF_CHECK;
-    info.id.src = ds.slotID;
-    info.id.dst = CAN_ADDR_BROADCAST;
-    info.id.pri = CAN_PRI_H;
-    info.id.port = 0;
 
-    txMsg.ExtId = info.value;
+    txMsg.ExtId = GetExtId(CAN_FUN_SELF_CHECK, CAN_PRI_H);
     txMsg.IDE = CAN_ID_EXT;
     txMsg.RTR = 0;
     txMsg.DLC = 1;
-    
+
     txMsg.Data[0] = index;
 
     CANx_Send(&txMsg);
@@ -419,15 +489,8 @@ static void can_send_selfCheck(uint8_t index)
 void can_send_remoteIn(void)
 {
     CanTxMsg txMsg = { 0 };
-    CAN_EXTID_INFO info = { 0 };
 
-    info.id.funID = CAN_FUN_REMOTE_IN;
-    info.id.src = ds.slotID;
-    info.id.dst = CAN_ADDR_BROADCAST;
-    info.id.pri = CAN_PRI_H;
-    info.id.port = 0;
-
-    txMsg.ExtId = info.value;
+    txMsg.ExtId = GetExtId(CAN_FUN_REMOTE_IN, CAN_PRI_H);
     txMsg.IDE = CAN_ID_EXT;
     txMsg.RTR = 0;
     txMsg.DLC = 8;
@@ -442,28 +505,32 @@ void can_send_remoteIn(void)
 static rt_err_t isSendValid(void)
 {
     rt_err_t ret = RT_ERROR;
-    
+
     switch(ds.slotID)
     {
         case SLOT_ID_MCU_A:
             ret = RT_EOK;
-            break;   
+            break;
+
         case SLOT_ID_MCU_B:
             if(ds.MCU[0].flt.lost == RT_ERROR)
             {
                 ret = RT_EOK;
-            }           
+            }
             break;
+
         case SLOT_ID_MCU_C:
             if(ds.MCU[0].flt.lost == RT_ERROR && ds.MCU[1].flt.lost == RT_ERROR)
             {
                 ret = RT_EOK;
             }
             break;
-        default:            
+
+        default:
             break;
+
     }
-    
+
     return ret;
 }
 
@@ -471,20 +538,13 @@ static rt_err_t isSendValid(void)
 void ExtCan_send_remoteIn(void)
 {
     CanTxMsg txMsg = { 0 };
-    CAN_EXTID_INFO info = { 0 };
-    
+
     if(RT_ERROR == isSendValid())
     {
         return;
     }
-    
-    info.id.funID = (ds.carID * 16 + 0x80);
-    info.id.src = ds.slotID;
-    info.id.dst = CAN_ADDR_BROADCAST;
-    info.id.pri = CAN_PRI_H;
-    info.id.port = 0;
 
-    txMsg.ExtId = info.value;
+    txMsg.ExtId = GetExtId( (ds.carID * 16 + 0x80), CAN_PRI_H);
     txMsg.IDE = CAN_ID_EXT;
     txMsg.RTR = 0;
     txMsg.DLC = 8;
@@ -499,25 +559,16 @@ void ExtCan_send_remoteIn(void)
 static void ExtCan_send_lcuFlt(void)
 {
     CanTxMsg txMsg = { 0 };
-    CAN_EXTID_INFO info = { 0 };
     uint32_t i;
-    
+
     if(RT_ERROR == isSendValid())
     {
         return;
     }
 
-    //mvb_flt_data(pKW_SHM->mvb_port[0].date);
-
     for(i = 0; i < 4; i++)
     {
-        info.id.funID = (ds.carID * 16 + 0x81 + i);   
-        info.id.src = ds.slotID;
-        info.id.dst = CAN_ADDR_BROADCAST;
-        info.id.pri = CAN_PRI_L;
-        info.id.port = 0;
-
-        txMsg.ExtId = info.value;
+        txMsg.ExtId = GetExtId( (ds.carID * 16 + 0x81 + i), CAN_PRI_L);
         txMsg.IDE = CAN_ID_EXT;
         txMsg.RTR = 0;
         txMsg.DLC = 8;
@@ -529,10 +580,10 @@ static void ExtCan_send_lcuFlt(void)
     }
 }
 
+
 static void ExtCan_send_lcuSts(void)
 {
     CanTxMsg txMsg = { 0 };
-    CAN_EXTID_INFO info = { 0 };
     uint32_t i;
     
     if(RT_ERROR == isSendValid())
@@ -540,17 +591,9 @@ static void ExtCan_send_lcuSts(void)
         return;
     }
 
-    //mvb_sts_data(pKW_SHM->mvb_port[1].date);
-
     for(i = 0; i < 4; i++)
     {
-        info.id.funID = (ds.carID * 16 + 0x85 + i);
-        info.id.src = ds.slotID;
-        info.id.dst = CAN_ADDR_BROADCAST;
-        info.id.pri = CAN_PRI_L;
-        info.id.port = 0;
-        
-        txMsg.ExtId = info.value;
+        txMsg.ExtId = GetExtId( (ds.carID * 16 + 0x85 + i), CAN_PRI_L);
         txMsg.IDE = CAN_ID_EXT;
         txMsg.RTR = 0;
         txMsg.DLC = 8;
@@ -566,18 +609,16 @@ static void ExtCan_send_lcuSts(void)
 void can_tx_serve(void)
 {
     static uint8_t index = 0;
-    
+
     rt_thread_delay(ds.slotID);
-    
+
     //can故障检测
     CanNode_Update();
-    
+
     switch(can_manage_sts)
     {
         case CAN_MANAGE_PWRON:
-            
             can_send_PwrOn();
-        
             if(ds.MCU[0].dc110v == 1 && ds.MCU[1].dc110v == 1 && ds.MCU[2].dc110v == 1)
             {
                 can_manage_sts = CAN_MANAGE_SELF_CHECK;
@@ -589,53 +630,55 @@ void can_tx_serve(void)
                     can_manage_sts = CAN_MANAGE_SCAN;
                 }
             }
-            
+
             break;
-        
+
         case CAN_MANAGE_SELF_CHECK:
             
             if(ds.slotID == SLOT_ID_MCU_A)
             {
                 can_send_selfCheck(index);
             }
-            
+
             index++;
-                
+
             if(index > 2)
             {
                 can_manage_sts = CAN_MANAGE_SCAN;
             }
-        
+
             break;
-            
+
         case CAN_MANAGE_SCAN:
-            
+
             can_send_output();
             rt_thread_delay(5);
-        
-            can_send_PwrOn();
+
+            can_send_Lifesign();
             rt_thread_delay(5);
-        
+
             ExtCan_send_lcuSts();
-        
-            can_manage_sts = CAN_MANAGE_MD;
+
+            can_manage_sts = CAN_MANAGE_REMOTEIN;
             break;
-        case CAN_MANAGE_MD:
-            
+
+        case CAN_MANAGE_REMOTEIN:
+
             can_send_remoteIn();
             rt_thread_delay(5);
-        
+
             ExtCan_send_remoteIn();
             rt_thread_delay(5);
-        
+
             ExtCan_send_lcuFlt();
-        
+
             can_manage_sts = CAN_MANAGE_SCAN;
             break;
-        
+
         default:
             can_manage_sts = CAN_MANAGE_SCAN;
             break;
+
     }
 }
 

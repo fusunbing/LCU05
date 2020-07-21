@@ -3,11 +3,11 @@
 #include "Bsp_can.h"
 #include "Bsp_canTask.h"
 #include "Bsp_can_QueApi.h"
-//#include "Bsp_io.h"
+
 #include "Bsp_can_app.h"
 #include "common.h"
+#include "Bsp_systimer.h"
 
-//#include "HW_ConfigId.h"
 
 
 #define CanTask_Event_Cycle     ((uint32_t)0x01)
@@ -87,23 +87,18 @@ static void Can_RX_Print(CAN_RX_DATA_RAM * pDate);
 static void Can_TX_Print(CAN_TX_DATA_RAM * pDate);
 
 
-
 void  Bsp_CanInit(void)
 {
-//    System_HW_Can_Init();
-//    rt_kprintf("\r\n+ CAN INFO: System CAN HW Init success!\r\n");
-    
     /* 通信事件机制初始化  */
     _ev_cansend_init = rt_event_init(&EventCanSend, "E_Can", RT_IPC_FLAG_FIFO);
-    
-	  /* Can rx Queue队列初始化  */
-	  mBsp_Can_Rx_Queue_Init();
+
+    /* Can rx Queue队列初始化  */
+    mBsp_Can_Rx_Queue_Init();
     /* Can tx1 Queue队列初始化  */
     mBsp_Can1_Tx_Queue_Init();
-	  /* Can tx2 Queue队列初始化  */
-	  mBsp_Can2_Tx_Queue_Init();
+    /* Can tx2 Queue队列初始化  */
+    mBsp_Can2_Tx_Queue_Init();
 
-    
     // can rx task
     rt_thread_init(&bsp_can_rx_queue_thread,
         "BspCanQueRx",
@@ -127,16 +122,16 @@ void  Bsp_CanInit(void)
         );
 
 
-//	  // can2 tx task
-		rt_thread_init(&bsp_can2_tx_queue_thread,
-			"BspCan2QueTx",
-			Bsp_can2_tx_task,
-			RT_NULL,
-			&bsp_can2_tx_queue_stack[0], 
-			sizeof(bsp_can2_tx_queue_stack),
-			BSP_CAN_T_Q_PRIORITY, 
-			4
-			);
+    // can2 tx task
+    rt_thread_init(&bsp_can2_tx_queue_thread,
+        "BspCan2QueTx",
+        Bsp_can2_tx_task,
+        RT_NULL,
+        &bsp_can2_tx_queue_stack[0], 
+        sizeof(bsp_can2_tx_queue_stack),
+        BSP_CAN_T_Q_PRIORITY, 
+        4
+        );
 
     // CAN 周期发送任务的创建
     rt_thread_init(&bsp_can_thread,
@@ -151,7 +146,7 @@ void  Bsp_CanInit(void)
 
     rt_thread_startup(&bsp_can_rx_queue_thread);
     rt_thread_startup(&bsp_can1_tx_queue_thread);
-	  rt_thread_startup(&bsp_can2_tx_queue_thread);
+    rt_thread_startup(&bsp_can2_tx_queue_thread);
     rt_thread_startup(&bsp_can_thread);
 }
 
@@ -175,13 +170,13 @@ static void CanTask_Check_Event(void)
 }
 
 
-
-
 static void  Bsp_can_rx_task(void* parameter)
 {
-	rt_thread_delay(500);
-	  System_HW_Can_Init();
-	  rt_kprintf("\r\n+ CAN INFO: System CAN HW Init success!\r\n");
+    rt_thread_delay(500);
+    System_HW_Can_Init();
+    rt_kprintf("\r\n+ CAN INFO: System CAN HW Init success!\r\n");
+    Bsp_canTimer_Init();
+
     for(;;) 
     {
         Can_CheckRxSem();
@@ -216,7 +211,7 @@ static void  Bsp_can1_tx_task(void* parameter)
     
     for(;;) 
     {
-		    Can1_CheckTxSem();
+        Can1_CheckTxSem();
         
         can1_txBuf = Can1Q_Pop_Tx_Msg();
         
@@ -258,9 +253,9 @@ static void  Bsp_can2_tx_task(void* parameter)
     uint8_t mailFull = 0;
     uint8_t tryTimes = CAN_SEND_TRYTIMES;
     
-	for(;;) 
-	{
-		Can2_CheckTxSem();        
+    for(;;) 
+    {
+        Can2_CheckTxSem();
         
         can2_txBuf = Can2Q_Pop_Tx_Msg();
         
@@ -293,7 +288,7 @@ static void  Bsp_can2_tx_task(void* parameter)
             
             Can_TX_Print(pCan2_txBuf);
         }
-	}
+    }
 }
 
 
@@ -320,7 +315,7 @@ static void Can_RX_Print(CAN_RX_DATA_RAM * pDate)
     uint8_t  len  = 0; 
     uint8_t  temp = 0;    
     CAN_EXTID_INFO info;    
-	
+
     if (canPrintFlag)
     {
         tick = pDate->parent.Tick;
@@ -345,8 +340,8 @@ static void Can_TX_Print(CAN_TX_DATA_RAM * pDate)
     uint32_t tick = 0; 
     uint16_t port = 0;
     uint8_t  len  = 0; 
-    uint8_t  temp = 0;    
-    CAN_EXTID_INFO info;   
+    uint8_t  temp = 0;
+    CAN_EXTID_INFO info;
     
     if (canPrintFlag)
     {

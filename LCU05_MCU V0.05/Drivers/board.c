@@ -204,7 +204,7 @@ void clockSour(void)
 void lcu_version(void)
 {
     uint32_t i;
-    
+
     rt_kprintf("+  mvb  : V%d.%d  \r\n", ds.mvb_Version>>5, ds.mvb_Version&0x1F);
     rt_kprintf("+  can1 : V%d.%d  \r\n", ds.can1_Version>>5, ds.can1_Version&0x1F);
     rt_kprintf("+  can2 : V%d.%d  \r\n", ds.can2_Version>>5, ds.can2_Version&0x1F);

@@ -12,7 +12,7 @@
 
 
 #define SYS_TASK_STACK_SIZE         (1024)
-#define SYS_TASK__PRIORITY          (10)
+#define SYS_TASK_PRIORITY           (10)
 
 
 ALIGN(RT_ALIGN_SIZE)
@@ -26,24 +26,24 @@ static rt_err_t sem_10ms_init;
 
 static void sys_thread_entry(void* parameter)
 {
-	static  rt_uint32_t  TimingDelay = 0;
+    static  rt_uint32_t  TimingDelay = 0;
 
-	rt_kprintf("\r\n+ BSP TASK INFO : BSP Task Init Success!\r\n");
+    rt_kprintf("\r\n+ BSP TASK INFO : BSP Task Init Success!\r\n");
 
-	for(;;)
-	{
-		//等待系统操作信号量
-		rt_sem_take(&sem_10ms, RT_WAITING_FOREVER);
+    for(;;)
+    {
+        //等待系统操作信号量
+        rt_sem_take(&sem_10ms, RT_WAITING_FOREVER);
 
-		TimingDelay++;
+        TimingDelay++;
         
 #if IWDG_EN
-        IWDG_ReloadCounter();       // 复位软件狗
-		HwWDog_Feed();              // 复位硬件狗
+    IWDG_ReloadCounter();       // 复位软件狗
+    HwWDog_Feed();              // 复位硬件狗
 #endif
 
-		if(TimingDelay % 4 == 0)
-		{
+        if(TimingDelay % 4 == 0)
+        {
             if(rt_tick_get() > 2000)
             {
                 //IO故障检测
@@ -51,9 +51,9 @@ static void sys_thread_entry(void* parameter)
             }
             
             // LED指示灯
-			System_Led_Logic(); 
-		}
-	}
+            System_Led_Logic(); 
+        }
+    }
 }
 
 
@@ -63,13 +63,13 @@ static void Bsp_sysTask_Init(void)
     
     sem_10ms_init  = rt_sem_init(&sem_10ms, "Sem10ms", 1, RT_IPC_FLAG_FIFO);
 
-	ret = rt_thread_init(&sys_thread,
+    ret = rt_thread_init(&sys_thread,
             "BspSysTask",
             sys_thread_entry,
             RT_NULL,
             sys_thread_stack, 
             SYS_TASK_STACK_SIZE,
-            SYS_TASK__PRIORITY, 
+            SYS_TASK_PRIORITY, 
             8);
         
     if(RT_EOK == ret)
@@ -91,15 +91,15 @@ void sem_10ms_Release(void)
 void System_task_create(void)
 {
     rt_kprintf("\r\n[*] System all task Init Start ...... \r\n");
-	
+
     //初始化硬件看门狗
     HwWDog_Init();
-	
+
     console_services_init();
 
-	//BSP系统任务的创建
+    //BSP系统任务的创建
     Bsp_sysTask_Init();
-    
+
     //初始化IO逻辑运算线程
     Bsp_ioTask_Init();
 

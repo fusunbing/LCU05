@@ -31,6 +31,8 @@ static const PIN_INDEX pins[] =
     {PIN_MODE_INPUT, RCC_AHB1Periph_GPIOF, GPIOF, GPIO_Pin_7},      //BOX_IDD1
     {PIN_MODE_INPUT, RCC_AHB1Periph_GPIOF, GPIOF, GPIO_Pin_8},      //BOX_IDD2
     {PIN_MODE_INPUT, RCC_AHB1Periph_GPIOF, GPIOF, GPIO_Pin_9},      //BOX_IDD3
+    {PIN_MODE_OUTPUT, RCC_AHB1Periph_GPIOB, GPIOB, GPIO_Pin_14},    //LED_ACT
+    {PIN_MODE_OUTPUT, RCC_AHB1Periph_GPIOB, GPIOB, GPIO_Pin_15},    //LED_FLT
 };
 
 
@@ -51,8 +53,6 @@ uint8_t GetPin(uint32_t index)
 {
     return GPIO_ReadInputDataBit(pins[index].gpio, pins[index].pin);
 }
-
-
 
 
 void stmPinsInit(void)

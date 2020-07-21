@@ -95,7 +95,7 @@ typedef struct
     uint8_t dc110v;
     uint8_t dc5v;
     CAN_NODE_STU flt;
-    uint8_t res;
+    uint8_t logic;
     
     uint8_t ou[8];
     uint32_t *Bits_ou;

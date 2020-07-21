@@ -32,7 +32,15 @@ static void versionFlt_detect(void)
     
     ds.MCU[ds.slotID - SLOT_ID_MCU_A].armVersion = MCU_VERSION;
     ds.MCU[ds.slotID - SLOT_ID_MCU_A].kwVersion = pKW_SHM->kwVer;
-    
+
+    for(i = 0; i < 3; i++)
+    {
+        if(ds.MCU[i].armVersion == 0 || ds.MCU[i].kwVersion == 0)
+        {
+            return;
+        }
+    }
+
     if(ds.MCU[0].armVersion != MCU_VERSION || ds.MCU[1].armVersion != MCU_VERSION || ds.MCU[2].armVersion  != MCU_VERSION)
     {
         pKW_SHM->me.verFlt.mcuVer = RT_ERROR;
@@ -47,7 +55,7 @@ static void versionFlt_detect(void)
     {
         for(i = 0; i < DIO_CNT_6U; i++)
         {
-            if(ds.DIO[i].version != DIO_VERSION)
+            if(ds.DIO[i].version != DIO_VERSION && ds.DIO[i].version != 0)
             {
                 pKW_SHM->me.verFlt.dioVer = RT_ERROR;
                 break;
@@ -58,12 +66,27 @@ static void versionFlt_detect(void)
     {
         for(i = 0; i < DIO_CNT_3U; i++)
         {
-            if(ds.DIO[i].version != DIO_VERSION)
+            if(ds.DIO[i].version != DIO_VERSION && ds.DIO[i].version != 0)
             {
                 pKW_SHM->me.verFlt.dioVer = RT_ERROR;
                 break;
             }
         }
+    }
+}
+
+
+static rt_err_t mcuAllOnline(void)
+{
+    if(ds.MCU[0].flt.lost == RT_ERROR
+    || ds.MCU[1].flt.lost == RT_ERROR
+    || ds.MCU[2].flt.lost == RT_ERROR)
+    {
+       return RT_ERROR;
+    }
+    else
+    {
+       return RT_EOK;
     }
 }
 
@@ -133,7 +156,8 @@ static void canNodeFlt_detect(void)
         ds.MCU[i].flt.lost = (ds.MCU[i].flt.can1 == RT_ERROR && ds.MCU[i].flt.can2 == RT_ERROR) ? RT_ERROR : RT_EOK;
         
         if(rt_memcmp(ds.MCU[i].ou, ds.MCU[(i + 1) % 3].ou, 8) != 0 
-            && rt_memcmp(ds.MCU[i].ou, ds.MCU[(i + 2) % 3].ou, 8) != 0)
+            && rt_memcmp(ds.MCU[i].ou, ds.MCU[(i + 2) % 3].ou, 8) != 0
+            && mcuAllOnline() == RT_EOK)
         {
             mcu_logic_cnt[i]++;
         }
@@ -143,7 +167,8 @@ static void canNodeFlt_detect(void)
         }
         
         if(rt_memcmp(ds.MCU[i].remote_in, ds.MCU[(i + 1) % 3].remote_in, 8) != 0 
-            && rt_memcmp(ds.MCU[i].remote_in, ds.MCU[(i + 2) % 3].remote_in, 8) != 0)
+            && rt_memcmp(ds.MCU[i].remote_in, ds.MCU[(i + 2) % 3].remote_in, 8) != 0
+            && mcuAllOnline() == RT_EOK)
         {
             mcu_remoteIn_cnt[i]++;
         }
@@ -151,25 +176,25 @@ static void canNodeFlt_detect(void)
         {
             mcu_remoteIn_cnt[i] = 0;
         }
-        
-        if(mcu_logic_cnt[i] > 10)
-        {
-            ds.MCU[i].flt.logic = RT_ERROR;
-        }
-        
-        if(mcu_remoteIn_cnt[i] > 10)
-        {
-            ds.MCU[i].flt.remoteIn = RT_ERROR;
-        }
-        
-//        ds.MCU[i].flt.logic = (mcu_logic_cnt[i] > 5) ? RT_ERROR : RT_EOK;
-//        ds.MCU[i].flt.remoteIn = (mcu_remoteIn_cnt[i] > 5) ? RT_ERROR : RT_EOK;
+
+//        if(mcu_logic_cnt[i] > 10)
+//        {
+//            ds.MCU[i].flt.logic = RT_ERROR;
+//        }
+
+//        if(mcu_remoteIn_cnt[i] > 10)
+//        {
+//            ds.MCU[i].flt.remoteIn = RT_ERROR;
+//        }
+
+        ds.MCU[i].flt.logic = (mcu_logic_cnt[i] > 10) ? RT_ERROR : RT_EOK;
+        ds.MCU[i].flt.remoteIn = (mcu_remoteIn_cnt[i] > 10) ? RT_ERROR : RT_EOK;
 
         if(ds.MCU[i].flt.can1 != RT_EOK
-            || ds.MCU[i].flt.can2 != RT_EOK
-            || ds.MCU[i].flt.lost != RT_EOK
-            || ds.MCU[i].flt.logic != RT_EOK
-            || ds.MCU[i].flt.remoteIn != RT_EOK)
+        || ds.MCU[i].flt.can2 != RT_EOK
+        || ds.MCU[i].flt.lost != RT_EOK
+        || ds.MCU[i].flt.logic != RT_EOK
+        || ds.MCU[i].flt.remoteIn != RT_EOK)
         {
             ds.MCU[i].flt.board = RT_ERROR;
         }
@@ -324,21 +349,57 @@ static void powerFlt_detect(void)
         dc5v_c_cnt = 0;
     }
     
-    pKW_SHM->me.pwr.dc110v_a = (dc110v_a_cnt > 10) ? RT_ERROR : RT_EOK;
-    pKW_SHM->me.pwr.dc5v_a = (dc5v_a_cnt > 10) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc110v_a = (dc110v_a_cnt > 5) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc5v_a = (dc5v_a_cnt > 5) ? RT_ERROR : RT_EOK;
     
-    pKW_SHM->me.pwr.dc110v_b = (dc110v_b_cnt > 10) ? RT_ERROR : RT_EOK;
-    pKW_SHM->me.pwr.dc5v_b = (dc5v_b_cnt > 10) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc110v_b = (dc110v_b_cnt > 5) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc5v_b = (dc5v_b_cnt > 5) ? RT_ERROR : RT_EOK;
     
-    pKW_SHM->me.pwr.dc110v_c = (dc110v_c_cnt > 10) ? RT_ERROR : RT_EOK;
-    pKW_SHM->me.pwr.dc5v_c = (dc5v_c_cnt > 10) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc110v_c = (dc110v_c_cnt > 5) ? RT_ERROR : RT_EOK;
+    pKW_SHM->me.pwr.dc5v_c = (dc5v_c_cnt > 5) ? RT_ERROR : RT_EOK;
+}
+
+
+static rt_err_t GetPwrFlt(uint8_t slotID)
+{
+    rt_err_t ret = RT_EOK;
+
+    switch(slotID)
+    {
+        case SLOT_ID_MCU_A:
+            if(pKW_SHM->me.pwr.dc110v_a == RT_ERROR || pKW_SHM->me.pwr.dc5v_a == RT_ERROR)
+            {
+                ret = RT_ERROR;
+            }
+            break;
+
+        case SLOT_ID_MCU_B:
+            if(pKW_SHM->me.pwr.dc110v_b == RT_ERROR || pKW_SHM->me.pwr.dc5v_b == RT_ERROR)
+            {
+                ret = RT_ERROR;
+            }
+            break;
+
+        case SLOT_ID_MCU_C:
+            if(pKW_SHM->me.pwr.dc110v_c == RT_ERROR || pKW_SHM->me.pwr.dc5v_c == RT_ERROR)
+            {
+                ret = RT_ERROR;
+            }
+            break;
+    
+        default:
+            ret = RT_ERROR;
+            break;
+    }
+
+    return ret;
 }
 
 
 static rt_err_t canNodeSts(void)
 {
-    rt_err_t ret = RT_ERROR;
-    
+    rt_err_t ret = RT_EOK;
+
     if(ds.carID == CAR_ID_MC1 || ds.carID == CAR_ID_MC2)
     {
         if(ds.DIO[0].flt.board == RT_ERROR || ds.DIO[1].flt.board == RT_ERROR || ds.DIO[2].flt.board == RT_ERROR ||
@@ -399,9 +460,11 @@ static void sys_thread_entry(void* parameter)
         {
             pKW_SHM->me.lifeSignal++;
             
-            canNodeFlt_detect();
-            
-            powerFlt_detect();
+            if(rt_tick_get() > 2000)
+            {
+                canNodeFlt_detect();
+                powerFlt_detect();
+            }
             
             if(rt_tick_get() > 2000 && rt_tick_get() < 3000)
             {
@@ -411,14 +474,16 @@ static void sys_thread_entry(void* parameter)
             rt_memcpy(pKW_SHM->me.inBuf, ds.inBuf, 14);
             rt_memcpy(pKW_SHM->me.ouBuf, ds.ouBuf, 8);
             
-            if(pKW_SHM->me.pwr.dc110v_a == RT_ERROR || pKW_SHM->me.pwr.dc5v_a == RT_ERROR
-                || pKW_SHM->me.pwr.dc110v_b == RT_ERROR || pKW_SHM->me.pwr.dc5v_b == RT_ERROR
-                || pKW_SHM->me.pwr.dc110v_c == RT_ERROR || pKW_SHM->me.pwr.dc5v_c == RT_ERROR
-            || pKW_SHM->me.verFlt.mcuVer == RT_ERROR || pKW_SHM->me.verFlt.kwVer == RT_ERROR || pKW_SHM->me.verFlt.dioVer == RT_ERROR)
+            if(GetPwrFlt(ds.slotID) == RT_ERROR
+                || pKW_SHM->me.verFlt.mcuVer == RT_ERROR
+                || pKW_SHM->me.verFlt.kwVer == RT_ERROR
+                || pKW_SHM->me.verFlt.dioVer == RT_ERROR)
             {
                 ds.fltLevel = 1;
             }
-            else if(ds.MCU[0].flt.board == RT_ERROR || ds.MCU[1].flt.board == RT_ERROR || ds.MCU[2].flt.board == RT_ERROR)
+            else if(ds.MCU[0].flt.board == RT_ERROR
+                 || ds.MCU[1].flt.board == RT_ERROR
+                 || ds.MCU[2].flt.board == RT_ERROR)
             {
                 ds.fltLevel = 2;
             }
